@@ -7,9 +7,16 @@ import {
   getCurrentUserRecentlyPlayedTracks,
 } from "../api/userApi";
 import * as SecureStore from "expo-secure-store";
+import { refresh } from "../auth/SpotifyAuth";
 
 const getAccessToken = async () => {
   try {
+    const expirationTime = await SecureStore.getItemAsync(
+      "spotifyExpirationTime"
+    );
+    if (new Date().getTime() > new Date(expirationTime)) {
+      await refresh();
+    }
     const accessToken = await SecureStore.getItemAsync("spotifyAccessToken");
     return accessToken;
   } catch (error) {

@@ -1,10 +1,11 @@
-import * as React from "react";
+import { useEffect } from "react";
 import { Button, Text } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import {
   makeRedirectUri,
   useAuthRequest,
   ResponseType,
+  AuthSession,
 } from "expo-auth-session";
 import {
   SPOTIFY_CLIENT_ID,
@@ -12,71 +13,136 @@ import {
   SPOTIFY_REDIRECT_URI,
 } from "@env";
 import * as SecureStore from "expo-secure-store";
+import { encode as btoa } from "base-64";
 
 WebBrowser.maybeCompleteAuthSession();
 
-const discovery = {
-  authorizationEndpoint: "https://accounts.spotify.com/authorize",
-  tokenEndpoint: "https://accounts.spotify.com/api/token",
+const clientId = SPOTIFY_CLIENT_ID;
+const clientSecret = SPOTIFY_CLIENT_SECRET;
+const scopes = [
+  "streaming",
+  "playlist-read-private",
+  "user-read-email",
+  "user-read-private",
+  "user-top-read",
+  "user-library-read",
+  "user-recently-played",
+];
+const redirectUri = makeRedirectUri({
+  useProxy: true,
+});
+
+const getParams = (url) => {
+  const queryString = url.split("?")[1];
+  const params = queryString.split("&");
+  const paramsObject = {};
+
+  params.forEach((param) => {
+    const [key, value] = param.split("=");
+    paramsObject[key] = decodeURIComponent(value);
+  });
+
+  return paramsObject;
 };
 
-const spotifyAuthConfig = {
-  clientId: SPOTIFY_CLIENT_ID,
-  scopes: [
-    // "streaming",
-    "playlist-read-private",
-    // "user-read-email",
-    "user-read-private",
-    "user-top-read",
-    "user-library-read",
-    "user-read-recently-played",
-  ],
-  responseType: ResponseType.Token,
-  usePKCE: false,
-  redirectUri: makeRedirectUri({
-    useProxy: true,
-  }),
+const getAuthURL = () => {
+  const queryParams = new URLSearchParams({
+    client_id: clientId,
+    response_type: "code",
+    redirect_uri: redirectUri,
+    scope: scopes.join(" "),
+  });
+  return `https://accounts.spotify.com/authorize?${queryParams.toString()}`;
 };
 
-function SpotifyLogin() {
-  const [request, response, promptAsync] = useAuthRequest(
-    spotifyAuthConfig,
-    discovery
-  );
-  React.useEffect(() => {
-    if (response?.type === "success") {
-      SecureStore.setItemAsync(
-        "spotifyAccessToken",
-        response.authentication.accessToken
-      )
-        .then(() => {
-          console.log("Access token saved successfully!");
-        })
-        .catch((error) => {
-          console.error("Error saving access token:", error);
-        });
+const getTokens = async (code) => {
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code: code,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+    }).toString(),
+  });
+  const data = await response.json();
+  return data;
+};
+
+const authenticate = async () => {
+  try {
+    const authUrl = getAuthURL();
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+    if (result.type === "success") {
+      const params = getParams(result.url);
+      const code = params.code;
+      const tokens = await getTokens(code);
+      const expirationTime = new Date().getTime() + tokens.expires_in * 1000;
+      await SecureStore.setItemAsync("spotifyAccessToken", tokens.access_token);
+      await SecureStore.setItemAsync(
+        "spotifyRefreshToken",
+        tokens.refresh_token
+      );
+      await SecureStore.setItemAsync(
+        "spotifyTokenExpirationTime",
+        expirationTime.toString()
+      );
+      console.log(
+        `Access token stored successfully. Access token will expire at ${new Date(
+          expirationTime
+        ).toLocaleString()}`
+      );
+    } else {
+      console.log("Authentication failed.");
     }
-  }, [response]);
-  console.log(
-    makeRedirectUri({
-      useProxy: true,
-    })
-  );
-  return (
-    <Button
-      disabled={!request}
-      title="Login To Spotify"
-      onPress={() => {
-        promptAsync();
-      }}
-    />
-  );
-}
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-function isLoggedIn() {
-  // Check if the user has a valid access token
-  const accessToken = SecureStore.getItemAsync("spotifyAccessToken");
-  return accessToken !== null;
-}
+const refresh = async () => {
+  try {
+    const refreshToken = await SecureStore.getItemAsync("spotifyRefreshToken");
+    const tokenResponse = await fetch(
+      "https://accounts.spotify.com/api/token",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `grant_type=refresh_token&refresh_token=${refreshToken}`,
+      }
+    );
+    const tokenData = await tokenResponse.json();
+    console.log(tokenData);
+    const expirationTime = new Date().getTime() + tokenData.expires_in * 1000;
+    await SecureStore.setItemAsync(
+      "spotifyAccessToken",
+      tokenData.access_token
+    );
+    if (tokenData.refresh_token) {
+      await SecureStore.setItemAsync(
+        "spotifyRefreshToken",
+        tokenData.refresh_token
+      );
+    }
+    await SecureStore.setItemAsync(
+      "spotifyTokenExpirationTime",
+      expirationTime.toString()
+    );
+    console.log(
+      `Access token refreshed successfully. Access token will expire at ${new Date(
+        expirationTime
+      ).toLocaleString()}`
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-module.exports = { SpotifyLogin, isLoggedIn };
+module.exports = { authenticate, refresh };
