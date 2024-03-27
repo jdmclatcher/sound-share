@@ -6,13 +6,21 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  Image,
 } from "react-native";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { searchSpotify } from "../api/searchApi";
 import * as SecureStore from "expo-secure-store";
+import { refresh } from "../auth/SpotifyAuth";
 
 const getAccessToken = async () => {
   try {
+    const expirationTime = await SecureStore.getItemAsync(
+      "spotifyExpirationTime"
+    );
+    if (new Date().getTime() > new Date(expirationTime)) {
+      await refresh();
+    }
     const accessToken = await SecureStore.getItemAsync("spotifyAccessToken");
     return accessToken;
   } catch (error) {
@@ -25,7 +33,6 @@ const fetchAccessToken = async (setAccessToken) => {
   const accessToken = await getAccessToken();
   if (accessToken) {
     setAccessToken(accessToken);
-    console.log("Access token:", accessToken);
   }
 };
 
@@ -44,7 +51,11 @@ const Search = ({ navigation }) => {
     const timerId = setTimeout(async () => {
       if (query) {
         const result = await searchSpotify(accessToken, query, searchType);
-        setResults(result[searchType].items);
+        if (searchType === "track") {
+          setResults(result.tracks.items);
+        } else if (searchType === "album") {
+          setResults(result.albums.items);
+        }
       }
     }, 500);
 
@@ -55,12 +66,23 @@ const Search = ({ navigation }) => {
     <TouchableOpacity
       onPress={() =>
         navigation.navigate("AddReview", {
-          accessToken: accessToken,
-          songId: item.id,
+          id: item.id,
+          type: searchType,
         })
       }
+      style={styles.resultItem}
     >
-      <Text>{item.name}</Text>
+      <Image
+        source={{
+          uri:
+            searchType === "album"
+              ? item.images[0].url
+              : item.album.images[0].url,
+        }}
+        style={styles.albumImage}
+      />
+      <Text style={styles.songName}>{item.name}</Text>
+      <Text style={styles.artistName}>{item.artists[0].name}</Text>
     </TouchableOpacity>
   );
 
@@ -68,11 +90,15 @@ const Search = ({ navigation }) => {
     <View style={styles.container}>
       <SegmentedControl
         style={styles.segmentedControl}
-        values={["Song", "Album"]}
-        selectedIndex={searchType}
-        onChange={(event) =>
-          setSearchType(event.nativeEvent.selectedSegmentIndex)
-        }
+        values={["Songs", "Albums"]}
+        selectedIndex={searchType === "track" ? 0 : 1}
+        onChange={(event) => {
+          setSearchType(
+            event.nativeEvent.selectedSegmentIndex === 0 ? "track" : "album"
+          );
+          setQuery("");
+          setResults([]);
+        }}
       />
       <TextInput
         style={styles.searchInput}
@@ -114,9 +140,25 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
+    flexDirection: "row",
+    alignItems: "center",
   },
-  resultText: {
+  albumImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    marginLeft: 8,
+  },
+  songName: {
     fontSize: 16,
+    paddingLeft: 8,
+    fontWeight: "bold",
+    flex: 1,
+  },
+  artistName: {
+    fontSize: 14,
+    paddingLeft: 8,
+    flex: 1,
   },
 });
 

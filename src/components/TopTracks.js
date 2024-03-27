@@ -1,43 +1,70 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Image, Button } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { getCurrentUserTopTracks } from "../api/userApi";
+import { getSongById } from "../api/searchApi";
+import { useNavigation } from "@react-navigation/native";
 
 const TopTracks = ({ accessToken, limit }) => {
-  const [topTracks, setTopTracks] = useState([]);
+  const [trackDetails, setTrackDetails] = useState([]);
 
   useEffect(() => {
-    const fetchTopTracks = async () => {
-      try {
-        const tracks = await getCurrentUserTopTracks(accessToken, limit);
-        setTopTracks(tracks);
-        console.log("Top tracks:", tracks);
-      } catch (error) {
-        console.error("Error fetching top tracks:", error);
-      }
-    };
-
     if (accessToken) {
+      const fetchTopTracks = () => {
+        getCurrentUserTopTracks(accessToken, limit)
+          .then((topTracks) => {
+            if (topTracks && topTracks.items) {
+              const trackIds = topTracks.items.map((item) => item.id);
+              return Promise.all(
+                trackIds.map((id) => getSongById(accessToken, id))
+              );
+            }
+            return [];
+          })
+          .then((details) => {
+            setTrackDetails(details);
+          })
+          .catch((error) => {
+            console.error("Error fetching top tracks:", error);
+          });
+      };
+
       fetchTopTracks();
     }
   }, [accessToken]);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.trackContainer}>
-      <Image source={{ uri: item.albumArt }} style={styles.albumArt} />
-      <Text style={styles.trackName}>{item.name}</Text>
-    </View>
-  );
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Top Tracks</Text>
-      <FlatList
-        data={topTracks}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      />
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+        {trackDetails &&
+          trackDetails.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.trackContainer}
+              onPress={() =>
+                navigation.navigate("AddReview", {
+                  trackId: item.id,
+                  type: "track",
+                })
+              }
+            >
+              <Image
+                source={{ uri: item.album.images[0].url }}
+                style={styles.albumArt}
+              />
+              <Text style={styles.trackName}>{item.name}</Text>
+            </TouchableOpacity>
+          ))}
+      </ScrollView>
     </View>
   );
 };
@@ -46,12 +73,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
+    width: "100%",
+    height: "25%",
   },
   heading: {
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
+    textAlign: "left",
+    marginLeft: 10,
+    paddingBottom: 10,
   },
   trackHeading: {
     fontSize: 20,
@@ -59,7 +89,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   trackContainer: {
+    marginLeft: 10,
     marginRight: 10,
+    alignItems: "center",
   },
   albumArt: {
     width: 100,

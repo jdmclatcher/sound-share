@@ -2,39 +2,46 @@ import { useEffect, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Image,
-  Button,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import { getCurrentUserRecentlyPlayedTracks } from "../api/userApi";
 import { getSongById } from "../api/searchApi";
+import { useNavigation } from "@react-navigation/native";
 
 const RecentlyPlayed = ({ accessToken, limit }) => {
   const [trackDetails, setTrackDetails] = useState([]);
 
   useEffect(() => {
-    const fetchRecentlyPlayedTracks = async () => {
-      try {
-        const recentlyPlayed = await getCurrentUserRecentlyPlayedTracks(
-          accessToken,
-          limit
-        );
-        if (recentlyPlayed) {
-          const trackIds = recentlyPlayed.items.map((item) => item.track.id);
-          const details = await Promise.all(
-            trackIds.map((id) => getSongById(accessToken, id))
-          );
-          setTrackDetails(details);
-        }
-      } catch (error) {
-        console.error("Error fetching recently played tracks:", error);
-      }
-    };
+    if (accessToken) {
+      const fetchRecentlyPlayedTracks = () => {
+        getCurrentUserRecentlyPlayedTracks(accessToken, limit)
+          .then((recentlyPlayed) => {
+            if (recentlyPlayed && recentlyPlayed.items) {
+              const trackIds = recentlyPlayed.items.map(
+                (item) => item.track.id
+              );
+              return Promise.all(
+                trackIds.map((id) => getSongById(accessToken, id))
+              );
+            }
+            return [];
+          })
+          .then((details) => {
+            setTrackDetails(details);
+          })
+          .catch((error) => {
+            console.error("Error fetching recently played tracks:", error);
+          });
+      };
 
-    fetchRecentlyPlayedTracks();
-  }, []);
+      fetchRecentlyPlayedTracks();
+    }
+  }, [accessToken]);
+
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
@@ -42,13 +49,22 @@ const RecentlyPlayed = ({ accessToken, limit }) => {
       <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
         {trackDetails &&
           trackDetails.map((item) => (
-            <View key={item.id} style={styles.trackContainer}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.trackContainer}
+              onPress={() =>
+                navigation.navigate("AddReview", {
+                  trackId: item.id,
+                  type: "track",
+                })
+              }
+            >
               <Image
                 source={{ uri: item.album.images[0].url }}
                 style={styles.albumArt}
               />
               <Text style={styles.trackName}>{item.name}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
       </ScrollView>
     </View>

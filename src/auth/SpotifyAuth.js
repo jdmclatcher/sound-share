@@ -92,7 +92,9 @@ const authenticate = async () => {
         expirationTime.toString()
       );
       console.log(
-        `Access token stored successfully. Access token will expire at ${new Date(
+        `Access token stored successfully. Access token: ${
+          tokens.access_token
+        }. Access token will expire at ${new Date(
           expirationTime
         ).toLocaleString()}`
       );
@@ -136,7 +138,9 @@ const refresh = async () => {
       expirationTime.toString()
     );
     console.log(
-      `Access token refreshed successfully. Access token will expire at ${new Date(
+      `Access token stored successfully. Access token: ${
+        tokenData.access_token
+      }. Access token will expire at ${new Date(
         expirationTime
       ).toLocaleString()}`
     );

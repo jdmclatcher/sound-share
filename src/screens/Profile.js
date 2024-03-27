@@ -29,7 +29,6 @@ const fetchAccessToken = async (setAccessToken) => {
   const accessToken = await getAccessToken();
   if (accessToken) {
     setAccessToken(accessToken);
-    console.log("Access token:", accessToken);
   }
 };
 

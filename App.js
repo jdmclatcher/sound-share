@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import HomeScreen from "./src/screens/Home";
 import ProfileScreen from "./src/screens/Profile";
 import SearchScreen from "./src/screens/Search";
+import AddReview from "./src/screens/AddReview";
 
 const Tab = createBottomTabNavigator();
 
@@ -44,6 +45,13 @@ export default function App() {
                 size={size}
               />
             ),
+          }}
+        />
+        <Tab.Screen
+          name="AddReview"
+          component={AddReview}
+          options={{
+            tabBarButton: () => null,
           }}
         />
       </Tab.Navigator>

@@ -1,9 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Image, TextInput, Button, StyleSheet } from "react-native";
 import { getSongById, getAlbumById } from "../api/searchApi";
-import { Rating } from "react-native-elements";
+import { Rating } from "react-native-ratings";
+import { useNavigation } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
+import { refresh } from "../auth/SpotifyAuth";
 
-const AddReview = ({ accessToken, id, type }) => {
+const getAccessToken = async () => {
+  try {
+    const expirationTime = await SecureStore.getItemAsync(
+      "spotifyExpirationTime"
+    );
+    if (new Date().getTime() > new Date(expirationTime)) {
+      await refresh();
+    }
+    const accessToken = await SecureStore.getItemAsync("spotifyAccessToken");
+    return accessToken;
+  } catch (error) {
+    console.error("Error retrieving access token:", error);
+    return null;
+  }
+};
+
+const fetchAccessToken = async (setAccessToken) => {
+  const accessToken = await getAccessToken();
+  if (accessToken) {
+    setAccessToken(accessToken);
+  }
+};
+
+const AddReview = ({ id, type }) => {
+  const [accessToken, setAccessToken] = useState(null);
+
+  useEffect(() => {
+    fetchAccessToken(setAccessToken);
+  }, []);
+
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [musicData, setMusicData] = useState(null);
@@ -18,56 +50,74 @@ const AddReview = ({ accessToken, id, type }) => {
 
   const handleSubmit = () => {
     // Send to home screen
-    navigation.navigate("Home");
+    Alert.alert("Review Saved", "Review saved successfully", [
+      { text: "OK", onPress: () => navigation.navigate("Home") },
+    ]);
   };
 
   useEffect(() => {
-    const fetchMusicData = async () => {
-      let data;
-      if (type === "song") {
-        data = await getSongById(accessToken, id);
-      } else if (type === "album") {
-        data = await getAlbumById(accessToken, id);
-      }
-      setMusicData(data);
-    };
-    fetchMusicData();
+    if (accessToken) {
+      const fetchMusicData = () => {
+        let data;
+        if (type === "song" || "track") {
+          getSongById(accessToken, id)
+            .then((response) => {
+              setMusicData(response);
+            })
+            .catch((error) => {
+              console.error("Error fetching song data:", error);
+            });
+        } else if (type === "album") {
+          getAlbumById(accessToken, id)
+            .then((response) => {
+              setMusicData(response);
+            })
+            .catch((error) => {
+              console.error("Error fetching album data:", error);
+            });
+        }
+      };
+      fetchMusicData();
+    }
   }, [accessToken, id, type]);
+
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      <View style={styles.musicContainer}>
-        <Text style={styles.musicName}>{musicData?.name}</Text>
-        <Image
-          source={{ uri: musicData?.images[0].url }}
-          style={styles.albumCover}
-        />
-        <Text style={styles.musicName}>
-          {type === "song" ? "Song Name" : "Album Name"}
-        </Text>
-        <Image
-          source={require("./album-cover.jpg")}
-          style={styles.albumCover}
-        />
-
-        <Rating
-          startingValue={rating}
-          onFinishRating={handleRatingChange}
-          imageSize={20}
-          style={styles.rating}
-        />
-
-        <View style={styles.reviewContainer}>
-          <Text style={styles.reviewLabel}>Review:</Text>
-          <TextInput
-            value={review}
-            onChangeText={handleReviewChange}
-            style={styles.reviewInput}
+      {musicData && (
+        <View style={styles.musicContainer}>
+          <Text style={styles.musicName}>{musicData?.name}</Text>
+          <Image
+            source={{ uri: musicData?.images[0].url }}
+            style={styles.albumCover}
           />
-        </View>
+          <Text style={styles.musicName}>
+            {type === "song" ? "Song Name" : "Album Name"}
+          </Text>
 
-        <Button title="Submit" onPress={handleSubmit} />
-      </View>
+          <Rating
+            type="star"
+            ratingCount={5}
+            imageSize={30}
+            showRating
+            increment={1}
+            onFinishRating={handleRatingChange}
+            style={styles.rating}
+          />
+
+          <View style={styles.reviewContainer}>
+            <Text style={styles.reviewLabel}>Review:</Text>
+            <TextInput
+              value={review}
+              onChangeText={handleReviewChange}
+              style={styles.reviewInput}
+            />
+          </View>
+
+          <Button title="Submit" onPress={handleSubmit} />
+        </View>
+      )}
     </View>
   );
 };
@@ -88,22 +138,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   albumCover: {
-    width: 200,
-    height: 200,
+    width: "100%",
+    height: "33%",
     marginBottom: 10,
   },
   rating: {
     paddingVertical: 10,
+    marginBottom: 10,
   },
   reviewContainer: {
     marginBottom: 20,
-  },
-  reviewLabel: {
-    fontSize: 16,
-    marginBottom: 5,
+    alignItems: "center",
   },
   reviewInput: {
-    height: 100,
+    width: "80%",
+    height: 150,
     borderColor: "gray",
     borderWidth: 1,
     padding: 10,

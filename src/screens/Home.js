@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Image, Button } from "react-native";
+import { View, Text, StyleSheet, Image, Button } from "react-native";
 import { refresh, authenticate, isLoggedIn } from "../auth/SpotifyAuth";
-import {
-  getCurrentUserTopTracks,
-  getCurrentUserRecentlyPlayedTracks,
-} from "../api/userApi";
 import RecentlyPlayed from "../components/RecentlyPlayed";
 import TopTracks from "../components/TopTracks";
 import * as SecureStore from "expo-secure-store";
@@ -29,7 +25,6 @@ const fetchAccessToken = async (setAccessToken) => {
   const accessToken = await getAccessToken();
   if (accessToken) {
     setAccessToken(accessToken);
-    console.log("Access token:", accessToken);
   }
 };
 
@@ -50,6 +45,7 @@ const HomeScreen = () => {
         />
       )}
       <RecentlyPlayed accessToken={accessToken} limit={10} />
+      <TopTracks accessToken={accessToken} limit={10} />
     </View>
   );
 };
