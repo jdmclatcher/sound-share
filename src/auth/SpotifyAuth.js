@@ -22,7 +22,7 @@ const clientSecret = SPOTIFY_CLIENT_SECRET;
 const scopes = [
   // "streaming",
   "playlist-read-private",
-  // "user-read-email",
+  "user-read-email",
   "user-read-private",
   "user-top-read",
   "user-library-read",
@@ -119,7 +119,7 @@ const refresh = async () => {
       }
     );
     const tokenData = await tokenResponse.json();
-    console.log(tokenData);
+    // console.log(tokenData);
     const expirationTime = new Date().getTime() + tokenData.expires_in * 1000;
     await SecureStore.setItemAsync(
       "spotifyAccessToken",

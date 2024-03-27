@@ -5,6 +5,8 @@ import {
   getCurrentUserTopTracks,
   getCurrentUserRecentlyPlayedTracks,
 } from "../api/userApi";
+import RecentlyPlayed from "../components/RecentlyPlayed";
+import TopTracks from "../components/TopTracks";
 import * as SecureStore from "expo-secure-store";
 
 const getAccessToken = async () => {
@@ -39,91 +41,15 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Welcome to Sound Share!</Text>
-      {/* {isLoggedIn() ? null : ( */}
-      <Button
-        title="Login To Spotify"
-        onPress={() => {
-          authenticate();
-        }}
-      />
-      {/* )} */}
-      {/* <RecentlyPlayed accessToken={accessToken} /> */}
-    </View>
-  );
-};
-
-const TopTracks = ({ accessToken, limit }) => {
-  const [topTracks, setTopTracks] = useState([]);
-
-  useEffect(() => {
-    const fetchTopTracks = async () => {
-      try {
-        const tracks = await getCurrentUserTopTracks(accessToken, limit);
-        setTopTracks(tracks);
-        console.log("Top tracks:", tracks);
-      } catch (error) {
-        console.error("Error fetching top tracks:", error);
-      }
-    };
-
-    if (accessToken) {
-      fetchTopTracks();
-    }
-  }, [accessToken]);
-
-  const renderItem = ({ item }) => (
-    <View style={styles.trackContainer}>
-      <Image source={{ uri: item.albumArt }} style={styles.albumArt} />
-      <Text style={styles.trackName}>{item.name}</Text>
-    </View>
-  );
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Top Tracks</Text>
-      <FlatList
-        data={topTracks}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      />
-    </View>
-  );
-};
-
-const RecentlyPlayed = ({ accessToken }) => {
-  const [recentlyPlayed, setRecentlyPlayed] = useState([]);
-  useEffect(() => {
-    const fetchRecentlyPlayed = async () => {
-      try {
-        const tracks = await getCurrentUserRecentlyPlayedTracks(accessToken);
-        setRecentlyPlayed(tracks);
-        console.log("Recently played tracks:", tracks);
-      } catch (error) {
-        console.error("Error fetching recently played tracks:", error);
-      }
-    };
-    if (accessToken) {
-      fetchRecentlyPlayed();
-    }
-  }, [accessToken]);
-  const renderItem = ({ item }) => (
-    <View style={styles.trackContainer}>
-      <Image source={{ uri: item.albumArt }} style={styles.albumArt} />
-      <Text style={styles.trackName}>{item.name}</Text>
-    </View>
-  );
-  return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Recently Played</Text>
-      <FlatList
-        data={recentlyPlayed}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      />
+      {isLoggedIn() ? null : (
+        <Button
+          title="Login To Spotify"
+          onPress={() => {
+            authenticate();
+          }}
+        />
+      )}
+      <RecentlyPlayed accessToken={accessToken} limit={10} />
     </View>
   );
 };
@@ -144,24 +70,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     textAlign: "center",
     marginHorizontal: 30,
-  },
-  trackHeading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  trackContainer: {
-    marginRight: 10,
-    alignItems: "center",
-  },
-  albumArt: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-  },
-  trackName: {
-    marginTop: 5,
-    textAlign: "center",
   },
 });
 

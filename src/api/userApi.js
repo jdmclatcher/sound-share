@@ -64,14 +64,18 @@ const getCurrentUserTopTracks = async (accessToken, limit) => {
 /**
  * Gets the current user's recently played tracks from Spotify.
  * @param {string} accessToken - The access token for the Spotify API.
+ * @param {string} limit - The number of items to return.
  * @returns {Promise<Object>} The user's recently played tracks.
  */
-const getCurrentUserRecentlyPlayedTracks = async (accessToken) => {
-  const response = await fetch(`${BASE_URL}/me/player/recently-played`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+const getCurrentUserRecentlyPlayedTracks = async (accessToken, limit) => {
+  const response = await fetch(
+    `${BASE_URL}/me/player/recently-played?limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
   const data = await response.json();
   return data;
 };
