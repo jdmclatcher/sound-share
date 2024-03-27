@@ -52,7 +52,7 @@ const TopTracks = ({ accessToken, limit }) => {
               style={styles.trackContainer}
               onPress={() =>
                 navigation.navigate("AddReview", {
-                  trackId: item.id,
+                  id: item.id,
                   type: "track",
                 })
               }

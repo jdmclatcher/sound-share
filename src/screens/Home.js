@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, Button } from "react-native";
+import { View, Text, StyleSheet, Button } from "react-native";
 import { refresh, authenticate, isLoggedIn } from "../auth/SpotifyAuth";
 import RecentlyPlayed from "../components/RecentlyPlayed";
 import TopTracks from "../components/TopTracks";
@@ -35,14 +35,25 @@ const HomeScreen = () => {
   }, []);
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome to Sound Share!</Text>
-      {isLoggedIn() ? null : (
-        <Button
-          title="Login To Spotify"
-          onPress={() => {
-            authenticate();
-          }}
-        />
+      <Text style={styles.heading}>Sound Share</Text>
+      {isLoggedIn() ? (
+        <Text style={styles.text}>
+          Welcome to Sound Share! Select a song from your Spotify history below
+          to begin reviewing music.
+        </Text>
+      ) : (
+        <View>
+          <Text style={styles.text}>
+            Click the button below to login to Spotify and start reviewing
+            music.
+          </Text>
+          <Button
+            title="Login To Spotify"
+            onPress={() => {
+              authenticate();
+            }}
+          />
+        </View>
       )}
       <RecentlyPlayed accessToken={accessToken} limit={10} />
       <TopTracks accessToken={accessToken} limit={10} />
@@ -57,12 +68,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   heading: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   text: {
-    fontSize: 18,
+    fontSize: 16,
     marginVertical: 10,
     textAlign: "center",
     marginHorizontal: 30,

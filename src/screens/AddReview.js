@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, TextInput, Button, StyleSheet } from "react-native";
 import { getSongById, getAlbumById } from "../api/searchApi";
 import { Rating } from "react-native-ratings";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, route } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { refresh } from "../auth/SpotifyAuth";
 
@@ -29,8 +29,10 @@ const fetchAccessToken = async (setAccessToken) => {
   }
 };
 
-const AddReview = ({ id, type }) => {
+const AddReview = ({ route }) => {
   const [accessToken, setAccessToken] = useState(null);
+
+  const { id, type } = route.params;
 
   useEffect(() => {
     fetchAccessToken(setAccessToken);
@@ -58,7 +60,6 @@ const AddReview = ({ id, type }) => {
   useEffect(() => {
     if (accessToken) {
       const fetchMusicData = () => {
-        let data;
         if (type === "song" || "track") {
           getSongById(accessToken, id)
             .then((response) => {
@@ -85,39 +86,41 @@ const AddReview = ({ id, type }) => {
 
   return (
     <View style={styles.container}>
-      {musicData && (
-        <View style={styles.musicContainer}>
-          <Text style={styles.musicName}>{musicData?.name}</Text>
-          <Image
-            source={{ uri: musicData?.images[0].url }}
-            style={styles.albumCover}
-          />
-          <Text style={styles.musicName}>
-            {type === "song" ? "Song Name" : "Album Name"}
-          </Text>
-
-          <Rating
-            type="star"
-            ratingCount={5}
-            imageSize={30}
-            showRating
-            increment={1}
-            onFinishRating={handleRatingChange}
-            style={styles.rating}
-          />
-
-          <View style={styles.reviewContainer}>
-            <Text style={styles.reviewLabel}>Review:</Text>
-            <TextInput
-              value={review}
-              onChangeText={handleReviewChange}
-              style={styles.reviewInput}
+      {musicData &&
+        (console.log("music data", musicData),
+        (
+          <View style={styles.musicContainer}>
+            <Text style={styles.musicName}>{musicData.name}</Text>
+            <Image
+              source={{ uri: musicData.album.images[0].url }}
+              style={styles.albumCover}
             />
-          </View>
+            <Text style={styles.musicName}>
+              {type === "song" ? "Song Name" : "Album Name"}
+            </Text>
 
-          <Button title="Submit" onPress={handleSubmit} />
-        </View>
-      )}
+            <Rating
+              type="star"
+              ratingCount={5}
+              imageSize={30}
+              showRating
+              increment={1}
+              onFinishRating={handleRatingChange}
+              style={styles.rating}
+            />
+
+            <View style={styles.reviewContainer}>
+              <Text style={styles.reviewLabel}>Review:</Text>
+              <TextInput
+                value={review}
+                onChangeText={handleReviewChange}
+                style={styles.reviewInput}
+              />
+            </View>
+
+            <Button title="Submit" onPress={handleSubmit} />
+          </View>
+        ))}
     </View>
   );
 };

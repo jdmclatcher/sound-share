@@ -23,8 +23,9 @@ const RecentlyPlayed = ({ accessToken, limit }) => {
               const trackIds = recentlyPlayed.items.map(
                 (item) => item.track.id
               );
+              const uniqueTrackIds = [...new Set(trackIds)];
               return Promise.all(
-                trackIds.map((id) => getSongById(accessToken, id))
+                uniqueTrackIds.map((id) => getSongById(accessToken, id))
               );
             }
             return [];
@@ -54,7 +55,7 @@ const RecentlyPlayed = ({ accessToken, limit }) => {
               style={styles.trackContainer}
               onPress={() =>
                 navigation.navigate("AddReview", {
-                  trackId: item.id,
+                  id: item.id,
                   type: "track",
                 })
               }
