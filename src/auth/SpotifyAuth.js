@@ -20,13 +20,13 @@ WebBrowser.maybeCompleteAuthSession();
 const clientId = SPOTIFY_CLIENT_ID;
 const clientSecret = SPOTIFY_CLIENT_SECRET;
 const scopes = [
-  "streaming",
+  // "streaming",
   "playlist-read-private",
-  "user-read-email",
+  // "user-read-email",
   "user-read-private",
   "user-top-read",
   "user-library-read",
-  "user-recently-played",
+  "user-read-recently-played",
 ];
 const redirectUri = makeRedirectUri({
   useProxy: true,
@@ -145,4 +145,18 @@ const refresh = async () => {
   }
 };
 
-module.exports = { authenticate, refresh };
+const isLoggedIn = async () => {
+  try {
+    const accessToken = await SecureStore.getItemAsync("spotifyAccessToken");
+    if (!accessToken) {
+      console.log("User is not logged in.");
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+  return true;
+};
+
+module.exports = { authenticate, refresh, isLoggedIn };

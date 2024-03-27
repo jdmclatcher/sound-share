@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Image } from "react-native";
-import { SpotifyLogin, isLoggedIn } from "../auth/SpotifyAuth";
+import { View, Text, FlatList, StyleSheet, Image, Button } from "react-native";
+import { refresh, authenticate, isLoggedIn } from "../auth/SpotifyAuth";
 import {
   getCurrentUserTopTracks,
   getCurrentUserRecentlyPlayedTracks,
@@ -9,6 +9,12 @@ import * as SecureStore from "expo-secure-store";
 
 const getAccessToken = async () => {
   try {
+    const expirationTime = await SecureStore.getItemAsync(
+      "spotifyExpirationTime"
+    );
+    if (new Date().getTime() > new Date(expirationTime)) {
+      await refresh();
+    }
     const accessToken = await SecureStore.getItemAsync("spotifyAccessToken");
     return accessToken;
   } catch (error) {
@@ -32,14 +38,16 @@ const HomeScreen = () => {
   }, []);
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Welcome to Sound Share!</Text>
-      <Text style={styles.text}>
-        Login and connect your Spotify account below to begin.
-      </Text>
-      {/* {!isLoggedIn && <SpotifyLogin />} */}
-      <SpotifyLogin />
-      {/* <TopTracks accessToken={accessToken} limit={10} /> */}
-      <RecentlyPlayed accessToken={accessToken} />
+      <Text style={styles.text}>Welcome to Sound Share!</Text>
+      {/* {isLoggedIn() ? null : ( */}
+      <Button
+        title="Login To Spotify"
+        onPress={() => {
+          authenticate();
+        }}
+      />
+      {/* )} */}
+      {/* <RecentlyPlayed accessToken={accessToken} /> */}
     </View>
   );
 };
