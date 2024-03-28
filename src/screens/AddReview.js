@@ -15,6 +15,16 @@ import { Rating } from "react-native-ratings";
 import { useNavigation, route } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { refresh } from "../auth/SpotifyAuth";
+import { firebase } from "../../config.js";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { getCurrentUserProfile } from "../api/userApi";
 
 const getAccessToken = async () => {
   try {
@@ -51,6 +61,7 @@ const AddReview = ({ route }) => {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [musicData, setMusicData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // prevent spam clicking submit
 
   const handleRatingChange = (value) => {
     setRating(parseInt(value));
@@ -60,13 +71,70 @@ const AddReview = ({ route }) => {
     setReview(value);
   };
 
-  const handleSubmit = () => {
-    // TODO handle save to firebase
-    // Send to home screen
-    Alert.alert("Review Saved", "Review saved successfully", [
-      { text: "OK", onPress: () => navigation.navigate("Home") },
-    ]);
+  // TODO handle save to firebase
+  const handleSubmit = async () => {
+    try {
+      const userProfile = await getCurrentUserProfile(accessToken);
+      const userId = userProfile.id;
+      const reviewData = {
+        rating: rating,
+        review: review,
+        spotifySongId: musicData.id,
+        createdAt: serverTimestamp(),
+        spotifyUserId: userId,
+      };
+      // Get a reference to the Firestore collection
+      const reviewsCollection = collection(firebase, "reviews");
+
+      // Add the new note
+      try {
+        await addDoc(reviewsCollection, reviewData);
+        Alert.alert("Review Saved", "Review saved successfully", [
+          { text: "OK", onPress: () => navigation.navigate("Home") },
+        ]);
+      } catch (error) {
+        console.error("Error saving review to Firebase: ", error);
+        Alert.alert("Error", "Failed to save review");
+      } finally {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error getting user profile:", error);
+      Alert.alert("Error", "Failed to save review");
+    }
+    // Clear all data after saving
+    setRating(0);
+    setReview("");
+    setMusicData(null);
   };
+
+  // const checkForExistingReview = async () => {
+  //   const userProfile = await getCurrentUserProfile(accessToken);
+  //   const userId = userProfile.id;
+  //   const reviewsCollection = collection(firebase, "reviews");
+  //   const querySnapshot = await getDocs(
+  //     query(reviewsCollection, where("spotifyUserId", "==", userId))
+  //   );
+  //   querySnapshot.forEach((doc) => {
+  //     const data = doc.data();
+  //     if (
+  //       data.spotifyUserId === userId &&
+  //       musicData.id === data.spotifySongId
+  //     ) {
+  //       console.log("Existing review found");
+  //       // Clear all data after loading
+  //       setRating(0);
+  //       setReview("");
+  //       setMusicData(null);
+  //       Alert.alert(
+  //         "Existing Review",
+  //         "You have already submitted a review for this song.",
+  //         [{ text: "OK", onPress: () => navigation.navigate("Home") }]
+  //       );
+  //     }
+  //   });
+  // };
+  // checkForExistingReview();
 
   useEffect(() => {
     if (accessToken) {
@@ -134,12 +202,18 @@ const AddReview = ({ route }) => {
               ratingCount={5}
               imageSize={30}
               showRating
-              defaultRating={0}
-              increment={1}
+              startingValue={0}
+              minValue={1}
+              jumpValue={1}
+              tintColor="#f5f5f5"
               onFinishRating={handleRatingChange}
               style={styles.rating}
             />
-            <Button title="Submit Review" onPress={handleSubmit} />
+            <Button
+              title="Submit Review"
+              onPress={handleSubmit}
+              disabled={review === "" || isLoading}
+            />
           </View>
         )}
       </View>

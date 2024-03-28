@@ -52,6 +52,7 @@ export default function App() {
           component={AddReview}
           options={{
             tabBarButton: () => null,
+            title: "Add Review", // Change the header appearance name to "Add Review"
           }}
         />
       </Tab.Navigator>

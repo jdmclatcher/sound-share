@@ -33,10 +33,11 @@ const getCurrentUserPlaylists = async (accessToken) => {
 /**
  * Gets the current user's top artists from Spotify.
  * @param {string} accessToken - The access token for the Spotify API.
+ * @param {string} limit - The number of items to return.
  * @returns {Promise<Object>} The user's top artists.
  */
-const getCurrentUserTopArtists = async (accessToken) => {
-  const response = await fetch(`${BASE_URL}/me/top/artists`, {
+const getCurrentUserTopArtists = async (accessToken, limit) => {
+  const response = await fetch(`${BASE_URL}/me/top/artists?limit=${limit}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
