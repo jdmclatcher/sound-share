@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Button } from "react-native";
 import {
   getCurrentUserProfile,
   getCurrentUserPlaylists,
@@ -7,7 +7,7 @@ import {
   getCurrentUserRecentlyPlayedTracks,
 } from "../api/userApi";
 import * as SecureStore from "expo-secure-store";
-import { refresh } from "../auth/SpotifyAuth";
+import { refresh, authenticate } from "../auth/SpotifyAuth";
 
 const getAccessToken = async () => {
   try {
@@ -42,7 +42,7 @@ const UserProfile = ({ accessToken }) => {
     if (accessToken) {
       getCurrentUserProfile(accessToken).then(setProfile);
       getCurrentUserPlaylists(accessToken).then(setPlaylists);
-      getCurrentUserTopArtists(accessToken).then(setTopArtists);
+      getCurrentUserTopArtists(accessToken, 10).then(setTopArtists);
       getCurrentUserRecentlyPlayedTracks(accessToken).then(setRecentlyPlayed);
     }
   }, [accessToken]);
@@ -53,7 +53,7 @@ const UserProfile = ({ accessToken }) => {
         <>
           <Text style={styles.text}>Welcome, {profile.display_name}</Text>
           {/* <Text style={styles.text}>Email: {profile.email}</Text> */}
-          <Text style={styles.text}>Followers: {profile.followers.total}</Text>
+          {/* <Text style={styles.text}>Followers: {profile.followers.total}</Text> */}
           <Text style={styles.text}>Top Artists: </Text>
           {topArtists && (
             <View>
@@ -62,6 +62,19 @@ const UserProfile = ({ accessToken }) => {
               ))}
             </View>
           )}
+        </>
+      )}
+      {!profile && (
+        <>
+          <Text style={styles.text}>
+            Please Login to Spotify to see your profile.
+          </Text>
+          <Button
+            title="Login To Spotify"
+            onPress={() => {
+              authenticate();
+            }}
+          />
         </>
       )}
     </View>
@@ -92,6 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginVertical: 5,
+    textAlign: "center",
   },
   profileImage: {
     width: 100,

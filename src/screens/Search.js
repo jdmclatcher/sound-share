@@ -7,11 +7,11 @@ import {
   Text,
   StyleSheet,
   Image,
+  Button,
 } from "react-native";
 import { searchSpotify } from "../api/searchApi";
 import * as SecureStore from "expo-secure-store";
-import { refresh } from "../auth/SpotifyAuth";
-import { Button } from "react-native";
+import { refresh, authenticate } from "../auth/SpotifyAuth";
 
 const getAccessToken = async () => {
   try {
@@ -86,6 +86,19 @@ const Search = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {!accessToken && (
+        <>
+          <Text style={styles.text}>
+            Please Login to Spotify to search & review music.
+          </Text>
+          <Button
+            title="Login To Spotify"
+            onPress={() => {
+              authenticate();
+            }}
+          />
+        </>
+      )}
       {/* <Button
         title="Songs"
         onPress={() => {
@@ -125,6 +138,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: "#fff",
+  },
+  text: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginVertical: 5,
+    textAlign: "center",
   },
   segmentedControl: {
     marginBottom: 16,
