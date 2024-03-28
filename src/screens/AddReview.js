@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TextInput, Button, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { getSongById, getAlbumById } from "../api/searchApi";
 import { Rating } from "react-native-ratings";
 import { useNavigation, route } from "@react-navigation/native";
@@ -51,6 +61,7 @@ const AddReview = ({ route }) => {
   };
 
   const handleSubmit = () => {
+    // TODO handle save to firebase
     // Send to home screen
     Alert.alert("Review Saved", "Review saved successfully", [
       { text: "OK", onPress: () => navigation.navigate("Home") },
@@ -61,6 +72,7 @@ const AddReview = ({ route }) => {
     if (accessToken) {
       const fetchMusicData = () => {
         if (type === "song" || "track") {
+          console.log("Fetching song data");
           getSongById(accessToken, id)
             .then((response) => {
               setMusicData(response);
@@ -69,6 +81,7 @@ const AddReview = ({ route }) => {
               console.error("Error fetching song data:", error);
             });
         } else if (type === "album") {
+          console.log("Fetching album data");
           getAlbumById(accessToken, id)
             .then((response) => {
               setMusicData(response);
@@ -84,29 +97,27 @@ const AddReview = ({ route }) => {
 
   const navigation = useNavigation();
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
-    <View style={styles.container}>
-      {musicData &&
-        (console.log("music data", musicData),
-        (
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <View style={styles.container}>
+        {musicData && (
           <View style={styles.musicContainer}>
             <Text style={styles.musicName}>{musicData.name}</Text>
-            <Image
-              source={{ uri: musicData.album.images[0].url }}
-              style={styles.albumCover}
-            />
-            <Text style={styles.musicName}>
-              {type === "song" ? "Song Name" : "Album Name"}
+            <Text style={styles.artistName}>
+              by: {musicData.artists.map((artist) => artist.name).join(", ")}
             </Text>
-
-            <Rating
-              type="star"
-              ratingCount={5}
-              imageSize={30}
-              showRating
-              increment={1}
-              onFinishRating={handleRatingChange}
-              style={styles.rating}
+            <Image
+              source={{
+                uri:
+                  type === "album"
+                    ? musicData.images[0].url
+                    : musicData.album.images[0].url,
+              }}
+              style={styles.albumCover}
             />
 
             <View style={styles.reviewContainer}>
@@ -114,14 +125,26 @@ const AddReview = ({ route }) => {
               <TextInput
                 value={review}
                 onChangeText={handleReviewChange}
-                style={styles.reviewInput}
+                style={[styles.reviewInput, { textAlignVertical: "top" }]}
+                multiline={true}
+                numberOfLines={4}
               />
             </View>
-
-            <Button title="Submit" onPress={handleSubmit} />
+            <Rating
+              type="star"
+              ratingCount={5}
+              imageSize={30}
+              showRating
+              defaultRating={0}
+              increment={1}
+              onFinishRating={handleRatingChange}
+              style={styles.rating}
+            />
+            <Button title="Submit Review" onPress={handleSubmit} />
           </View>
-        ))}
-    </View>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -129,35 +152,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
+    padding: 20,
+    paddingTop: 10,
   },
   musicContainer: {
+    flex: 1,
     alignItems: "center",
-    marginBottom: 20,
   },
   musicName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 10,
   },
   albumCover: {
-    width: "100%",
-    height: "33%",
+    aspectRatio: 1,
+    width: "50%",
     marginBottom: 10,
+    borderRadius: 5,
+  },
+  artistName: {
+    fontSize: 16,
+    marginBottom: 5,
   },
   rating: {
-    paddingVertical: 10,
     marginBottom: 10,
   },
   reviewContainer: {
-    marginBottom: 20,
-    alignItems: "center",
+    width: "100%",
+    marginBottom: 10,
+  },
+  reviewLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
   },
   reviewInput: {
-    width: "80%",
+    width: "100%",
     height: 150,
-    borderColor: "gray",
     borderWidth: 1,
+    borderRadius: 5,
+    borderColor: "gray",
     padding: 10,
   },
 });

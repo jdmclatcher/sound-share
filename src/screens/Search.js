@@ -91,11 +91,12 @@ const Search = ({ navigation }) => {
       <SegmentedControl
         style={styles.segmentedControl}
         values={["Songs", "Albums"]}
-        selectedIndex={searchType === "track" ? 0 : 1}
+        selectedIndex={searchType === "album" ? 1 : 0}
         onChange={(event) => {
           setSearchType(
             event.nativeEvent.selectedSegmentIndex === 0 ? "track" : "album"
           );
+          console.log(searchType);
           setQuery("");
           setResults([]);
         }}
@@ -104,7 +105,9 @@ const Search = ({ navigation }) => {
         style={styles.searchInput}
         value={query}
         onChangeText={setQuery}
-        placeholder="Search for a song or album"
+        placeholder={`Search for a${
+          searchType === "track" ? " song" : "n album"
+        }`}
       />
       <FlatList
         style={styles.resultsList}
