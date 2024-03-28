@@ -56,7 +56,7 @@ const RecentlyPlayed = ({ accessToken, limit }) => {
               onPress={() =>
                 navigation.navigate("AddReview", {
                   id: item.id,
-                  type: "track",
+                  type: 0,
                 })
               }
             >
