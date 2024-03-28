@@ -8,10 +8,10 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { searchSpotify } from "../api/searchApi";
 import * as SecureStore from "expo-secure-store";
 import { refresh } from "../auth/SpotifyAuth";
+import { Button } from "react-native";
 
 const getAccessToken = async () => {
   try {
@@ -45,15 +45,16 @@ const Search = ({ navigation }) => {
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [searchType, setSearchType] = useState("track");
+  const [searchType, setSearchType] = useState(0);
 
   useEffect(() => {
     const timerId = setTimeout(async () => {
       if (query) {
-        const result = await searchSpotify(accessToken, query, searchType);
-        if (searchType === "track") {
+        let searchTypeText = searchType === 0 ? "track" : "album";
+        const result = await searchSpotify(accessToken, query, searchTypeText);
+        if (searchType == 0) {
           setResults(result.tracks.items);
-        } else if (searchType === "album") {
+        } else if (searchType == 1) {
           setResults(result.albums.items);
         }
       }
@@ -74,10 +75,7 @@ const Search = ({ navigation }) => {
     >
       <Image
         source={{
-          uri:
-            searchType === "album"
-              ? item.images[0].url
-              : item.album.images[0].url,
+          uri: searchType == 1 ? item.images[0].url : item.album.images[0].url,
         }}
         style={styles.albumImage}
       />
@@ -88,26 +86,29 @@ const Search = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <SegmentedControl
-        style={styles.segmentedControl}
-        values={["Songs", "Albums"]}
-        selectedIndex={searchType === "album" ? 1 : 0}
-        onChange={(event) => {
-          setSearchType(
-            event.nativeEvent.selectedSegmentIndex === 0 ? "track" : "album"
-          );
-          console.log(searchType);
+      {/* <Button
+        title="Songs"
+        onPress={() => {
+          setSearchType(0);
           setQuery("");
           setResults([]);
         }}
+        style={searchType === 0 ? styles.activeButton : styles.inactiveButton}
       />
+      <Button
+        title="Albums"
+        onPress={() => {
+          setSearchType(1);
+          setQuery("");
+          setResults([]);
+        }}
+        style={searchType === 1 ? styles.activeButton : styles.inactiveButton}
+      /> */}
       <TextInput
         style={styles.searchInput}
         value={query}
         onChangeText={setQuery}
-        placeholder={`Search for a${
-          searchType === "track" ? " song" : "n album"
-        }`}
+        placeholder={`Search for a${searchType === 0 ? " song" : "n album"}`}
       />
       <FlatList
         style={styles.resultsList}
@@ -162,6 +163,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingLeft: 8,
     flex: 1,
+  },
+  activeButton: {
+    backgroundColor: "blue",
+    color: "white",
+    marginRight: 8,
+  },
+  inactiveButton: {
+    backgroundColor: "gray",
+    color: "black",
+    marginRight: 8,
   },
 });
 

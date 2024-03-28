@@ -71,7 +71,7 @@ const AddReview = ({ route }) => {
   useEffect(() => {
     if (accessToken) {
       const fetchMusicData = () => {
-        if (type === "song" || "track") {
+        if (type == 0) {
           console.log("Fetching song data");
           getSongById(accessToken, id)
             .then((response) => {
@@ -80,7 +80,7 @@ const AddReview = ({ route }) => {
             .catch((error) => {
               console.error("Error fetching song data:", error);
             });
-        } else if (type === "album") {
+        } else if (type == 1) {
           console.log("Fetching album data");
           getAlbumById(accessToken, id)
             .then((response) => {
@@ -113,13 +113,12 @@ const AddReview = ({ route }) => {
             <Image
               source={{
                 uri:
-                  type === "album"
+                  type == 1
                     ? musicData.images[0].url
                     : musicData.album.images[0].url,
               }}
               style={styles.albumCover}
             />
-
             <View style={styles.reviewContainer}>
               <Text style={styles.reviewLabel}>Review:</Text>
               <TextInput
