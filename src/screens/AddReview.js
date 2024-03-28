@@ -202,8 +202,10 @@ const AddReview = ({ route }) => {
               ratingCount={5}
               imageSize={30}
               showRating
-              defaultRating={0}
-              increment={1}
+              startingValue={0}
+              minValue={1}
+              jumpValue={1}
+              tintColor="#f5f5f5"
               onFinishRating={handleRatingChange}
               style={styles.rating}
             />
