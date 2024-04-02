@@ -5,6 +5,7 @@ import HomeScreen from "./src/screens/Home";
 import ProfileScreen from "./src/screens/Profile";
 import SearchScreen from "./src/screens/Search";
 import AddReview from "./src/screens/AddReview";
+import ReviewScreen from "./src/screens/Reviews";
 
 const Tab = createBottomTabNavigator();
 
@@ -34,7 +35,7 @@ export default function App() {
             ),
           }}
         />
-        <Tab.Screen
+        {/* <Tab.Screen
           name="Profile"
           component={ProfileScreen}
           options={{
@@ -44,6 +45,15 @@ export default function App() {
                 color={color}
                 size={size}
               />
+            ),
+          }}
+        /> */}
+        <Tab.Screen
+          name="Reviews"
+          component={ReviewScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="star" color={color} size={size} />
             ),
           }}
         />
