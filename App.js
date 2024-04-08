@@ -6,13 +6,27 @@ import ProfileScreen from "./src/screens/Profile";
 import SearchScreen from "./src/screens/Search";
 import AddReview from "./src/screens/AddReview";
 import ReviewScreen from "./src/screens/Reviews";
+import ArtistProfileScreen from "./src/screens/ArtistProfile";
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarStyle: {
+            display: "flex",
+            backgroundColor: "#04A777", 
+          },
+          tabBarActiveTintColor: "#FFFFFF", 
+          tabBarInactiveTintColor: "#CCCCCC", 
+          headerStyle: {
+            backgroundColor: "#04A777",
+          },
+          headerTintColor: "#FFFFFF",
+        }}
+      >
         <Tab.Screen
           name="Home"
           component={HomeScreen}
@@ -58,11 +72,19 @@ export default function App() {
           }}
         />
         <Tab.Screen
+          name="ArtistProfile"
+          component={ArtistProfileScreen}
+          options={{
+            tabBarButton: () => null,
+            title: "Artist Profile", 
+          }}
+        />
+        <Tab.Screen
           name="AddReview"
           component={AddReview}
           options={{
             tabBarButton: () => null,
-            title: "Add Review", // Change the header appearance name to "Add Review"
+            title: "Add Review", 
           }}
         />
       </Tab.Navigator>

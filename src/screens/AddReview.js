@@ -9,6 +9,7 @@ import {
   Alert,
   Keyboard,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import { getSongById, getAlbumById } from "../api/searchApi";
 import { Rating } from "react-native-ratings";
@@ -51,17 +52,17 @@ const fetchAccessToken = async (setAccessToken) => {
 
 const AddReview = ({ route }) => {
   const [accessToken, setAccessToken] = useState(null);
+  const [loadingMusicData, setLoadingMusicData] = useState(true); 
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
+  const [musicData, setMusicData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); 
 
   const { id, type } = route.params;
 
   useEffect(() => {
     fetchAccessToken(setAccessToken);
   }, []);
-
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState("");
-  const [musicData, setMusicData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // prevent spam clicking submit
 
   const handleRatingChange = (value) => {
     setRating(parseInt(value));
@@ -83,10 +84,9 @@ const AddReview = ({ route }) => {
         createdAt: serverTimestamp(),
         spotifyUserId: userId,
       };
-      // Get a reference to the Firestore collection
+    
       const reviewsCollection = collection(firebase, "reviews");
 
-      // Add the new note
       try {
         await addDoc(reviewsCollection, reviewData);
         Alert.alert("Review Saved", "Review saved successfully", [
@@ -102,43 +102,16 @@ const AddReview = ({ route }) => {
       console.error("Error getting user profile:", error);
       Alert.alert("Error", "Failed to save review");
     }
-    // Clear all data after saving
     setRating(0);
     setReview("");
     setMusicData(null);
   };
 
-  // const checkForExistingReview = async () => {
-  //   const userProfile = await getCurrentUserProfile(accessToken);
-  //   const userId = userProfile.id;
-  //   const reviewsCollection = collection(firebase, "reviews");
-  //   const querySnapshot = await getDocs(
-  //     query(reviewsCollection, where("spotifyUserId", "==", userId))
-  //   );
-  //   querySnapshot.forEach((doc) => {
-  //     const data = doc.data();
-  //     if (
-  //       data.spotifyUserId === userId &&
-  //       musicData.id === data.spotifySongId
-  //     ) {
-  //       console.log("Existing review found");
-  //       // Clear all data after loading
-  //       setRating(0);
-  //       setReview("");
-  //       setMusicData(null);
-  //       Alert.alert(
-  //         "Existing Review",
-  //         "You have already submitted a review for this song.",
-  //         [{ text: "OK", onPress: () => navigation.navigate("Home") }]
-  //       );
-  //     }
-  //   });
-  // };
-  // checkForExistingReview();
 
   useEffect(() => {
     if (accessToken) {
       const fetchMusicData = () => {
+        setLoadingMusicData(true); 
         if (type == 0) {
           console.log("Fetching song data");
           getSongById(accessToken, id)
@@ -147,7 +120,8 @@ const AddReview = ({ route }) => {
             })
             .catch((error) => {
               console.error("Error fetching song data:", error);
-            });
+            })
+            .finally(() => setLoadingMusicData(false)); 
         } else if (type == 1) {
           console.log("Fetching album data");
           getAlbumById(accessToken, id)
@@ -156,12 +130,21 @@ const AddReview = ({ route }) => {
             })
             .catch((error) => {
               console.error("Error fetching album data:", error);
-            });
+            })
+            .finally(() => setLoadingMusicData(false)); 
         }
       };
       fetchMusicData();
     }
   }, [accessToken, id, type]);
+
+  useEffect(() => {
+    if (!loadingMusicData) {
+      navigation.setOptions({ title: musicData ? (musicData.name) : "" });
+    } else {
+      navigation.setOptions({ title: "" });
+    }
+  }, [musicData, loadingMusicData]);
 
   const navigation = useNavigation();
 
@@ -172,8 +155,11 @@ const AddReview = ({ route }) => {
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
-        {musicData && (
+        {loadingMusicData ? ( 
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : musicData && (
           <View style={styles.musicContainer}>
+            {/* Music data content */}
             <Text style={styles.musicName}>{musicData.name}</Text>
             <Text style={styles.artistName}>
               by: {musicData.artists.map((artist) => artist.name).join(", ")}
@@ -225,6 +211,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     paddingTop: 10,
   },
@@ -247,9 +234,11 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   rating: {
+    marginTop: 30,
     marginBottom: 10,
   },
   reviewContainer: {
+    height: 150,
     width: "100%",
     marginBottom: 10,
   },
@@ -259,7 +248,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   reviewInput: {
-    width: "100%",
+    width: 300,
     height: 150,
     borderWidth: 1,
     borderRadius: 5,

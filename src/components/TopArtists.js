@@ -7,38 +7,35 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { getCurrentUserRecentlyPlayedTracks } from "../api/userApi";
-import { getSongById } from "../api/searchApi";
+import { getCurrentUserTopArtists } from "../api/userApi";
+import { getArtistById } from "../api/searchApi";
 import { useNavigation } from "@react-navigation/native";
 
-const RecentlyPlayed = ({ accessToken, limit }) => {
-  const [trackDetails, setTrackDetails] = useState([]);
+const TopArtists = ({ accessToken, limit }) => {
+  const [artistDetails, setArtistDetails] = useState([]);
 
   useEffect(() => {
     if (accessToken) {
-      const fetchRecentlyPlayedTracks = () => {
-        getCurrentUserRecentlyPlayedTracks(accessToken, limit)
-          .then((recentlyPlayed) => {
-            if (recentlyPlayed && recentlyPlayed.items) {
-              const trackIds = recentlyPlayed.items.map(
-                (item) => item.track.id
-              );
-              const uniqueTrackIds = [...new Set(trackIds)];
+      const fetchTopArtists = () => {
+        getCurrentUserTopArtists(accessToken, limit)
+          .then((topArtists) => {
+            if (topArtists && topArtists.items) {
+              const artistIds = topArtists.items.map((item) => item.id);
               return Promise.all(
-                uniqueTrackIds.map((id) => getSongById(accessToken, id))
+                artistIds.map((id) => getArtistById(accessToken, id))
               );
             }
             return [];
           })
           .then((details) => {
-            setTrackDetails(details);
+            setArtistDetails(details);
           })
           .catch((error) => {
-            console.error("Error fetching recently played tracks:", error);
+            console.error("Error fetching artists:", error);
           });
       };
 
-      fetchRecentlyPlayedTracks();
+      fetchTopArtists();
     }
   }, [accessToken]);
 
@@ -46,14 +43,14 @@ const RecentlyPlayed = ({ accessToken, limit }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Recently Played</Text>
+      <Text style={styles.heading}>Top Artists This Month</Text>
       <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-        {trackDetails &&
-          trackDetails.map((item) => (
-            <View key={item.id} style={styles.trackContainer}>
+        {artistDetails &&
+          artistDetails.map((item) => (
+            <View key={item.id} style={styles.artistContainer}>
               <TouchableOpacity
                 onPress={() =>
-                  navigation.navigate("AddReview", {
+                  navigation.navigate("ArtistProfile", {
                     id: item.id,
                     type: 0,
                   })
@@ -61,10 +58,10 @@ const RecentlyPlayed = ({ accessToken, limit }) => {
                 style={styles.touchableContainer}
               >
                 <Image
-                  source={{ uri: item.album.images[0].url }}
-                  style={styles.albumArt}
+                  source={{ uri: item.images && item.images[0] ? item.images[0].url : '' }}
+                  style={styles.artistArt}
                 />
-                <Text style={styles.trackName}>{item.name}</Text>
+                <Text style={styles.artistName}>{item.name}</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -87,31 +84,26 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     paddingBottom: 10,
   },
-  trackHeading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  trackContainer: {
+  artistContainer: {
     marginLeft: 5,
     marginRight: 10,
     alignItems: "center",
   },
   touchableContainer: {
     alignItems: "center",
-    width: 110, 
+    width: 110,
   },
-  albumArt: {
+  artistArt: {
     width: 100,
     height: 100,
     borderRadius: 10,
   },
-  trackName: {
+  artistName: {
     marginTop: 5,
     textAlign: "center",
-    flexWrap: "wrap",
     fontSize: 12,
+    flexWrap: "wrap",
   },
 });
 
-export default RecentlyPlayed;
+export default TopArtists;
