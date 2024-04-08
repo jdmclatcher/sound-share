@@ -17,14 +17,7 @@ import { useNavigation, route } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { refresh } from "../auth/SpotifyAuth";
 import { firebase } from "../../config.js";
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { ref, push, set } from "firebase/database";
 import { getCurrentUserProfile } from "../api/userApi";
 
 const getAccessToken = async () => {
@@ -72,6 +65,39 @@ const AddReview = ({ route }) => {
     setReview(value);
   };
 
+  const handleSubmit = async () => {
+    try {
+      const userProfile = await getCurrentUserProfile(accessToken);
+      const username = userProfile.id; 
+      if (!username) {
+        throw new Error("Username not found in user profile");
+      }
+      const reviewData = {
+        rating: rating,
+        review: review,
+        spotifySongId: musicData.id,
+        spotifyUserId: username,
+      };
+  
+      const userReviewsRef = ref(firebase, `users/${username}/reviews`);
+    
+      const newReviewRef = push(userReviewsRef);
+      await set(newReviewRef, reviewData);
+    
+      Alert.alert("Review Saved", "Review saved successfully", [
+        { text: "OK", onPress: () => navigation.navigate("Home") },
+      ]);
+    } catch (error) {
+      console.error("Error saving review to Firebase: ", error);
+      Alert.alert("Error", "Failed to save review");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  
+
+  /*
   // TODO handle save to firebase
   const handleSubmit = async () => {
     try {
@@ -106,7 +132,7 @@ const AddReview = ({ route }) => {
     setReview("");
     setMusicData(null);
   };
-
+*/
 
   useEffect(() => {
     if (accessToken) {

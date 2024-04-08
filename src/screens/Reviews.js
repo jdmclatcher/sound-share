@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,23 +8,12 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import {
-  getCurrentUserProfile,
-  getCurrentUserPlaylists,
-  getCurrentUserTopArtists,
-  getCurrentUserRecentlyPlayedTracks,
-} from "../api/userApi";
+import { getCurrentUserProfile } from "../api/userApi";
 import { getSongById } from "../api/searchApi";
 import * as SecureStore from "expo-secure-store";
 import { refresh, authenticate } from "../auth/SpotifyAuth";
 import { firebase } from "../../config.js";
-import {
-  collection,
-  getDocs,
-  where,
-  query,
-  onSnapshot,
-} from "firebase/firestore";
+import { ref, query, orderByChild, equalTo, onValue } from "firebase/database";
 
 const getAccessToken = async () => {
   try {
@@ -52,48 +41,57 @@ const fetchAccessToken = async (setAccessToken) => {
 const Reviews = ({ accessToken }) => {
   const [profile, setProfile] = useState(null);
   const [reviews, setReviews] = useState(null);
+  const [friends, setFriends] = useState([]);
 
   useEffect(() => {
     if (accessToken) {
       getCurrentUserProfile(accessToken).then((profile) => {
         setProfile(profile);
 
-        // Fetch reviews from Firestore
-        const fetchReviews = async () => {
-          const reviewsRef = collection(firebase, "reviews");
-          const q = query(reviewsRef, where("spotifyUserId", "==", profile.id));
-          const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-            try {
-              const reviewDataFirestore = querySnapshot.docs.map((doc) =>
-                doc.data()
-              );
+        const fetchReviews = () => {
+          const userId = profile.id;
+          const userRef = ref(firebase, `users/${userId}`);
+          onValue(userRef, (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+              // Fetching reviews
+              const reviewsRef = ref(firebase, `users/${userId}/reviews`);
+              onValue(reviewsRef, async (reviewSnapshot) => {
+                const reviewData = reviewSnapshot.val();
+                if (reviewData) {
+                  const reviewList = Object.keys(reviewData).map(async (key) => {
+                    const review = reviewData[key];
+                    const songId = review.spotifySongId;
+                    const musicData = await getSongById(accessToken, songId);
+                    const songName = musicData.name;
+                    const albumArt = musicData.album.images[0].url;
+                    return { ...review, id: key, songName, albumArt };
+                  });
+                  Promise.all(reviewList).then((reviews) => {
+                    setReviews(reviews);
+                  });
+                } else {
+                  setReviews([]);
+                }
+              });
 
-              const reviewData = await Promise.all(
-                reviewDataFirestore.map((review) => {
-                  return getSongById(accessToken, review.spotifySongId)
-                    .then((musicData) => {
-                      const albumArt = musicData?.album.images[0].url;
-                      const songName = musicData?.name;
-                      const reviewDataExport = {
-                        ...review,
-                        albumArt,
-                        songName,
-                      };
-                      return reviewDataExport;
-                    })
-                    .catch((error) => {
-                      console.error("Error retrieving music data:", error);
-                      return null;
-                    });
-                })
-              );
-              setReviews(reviewData);
-            } catch (error) {
-              console.error("Error fetching reviews:", error);
+              const friendsRef = ref(firebase, `users/${userId}/friends`);
+              onValue(friendsRef, (friendsSnapshot) => {
+                const friendsData = friendsSnapshot.val();
+                if (friendsData) {
+                  const friendsList = Object.keys(friendsData).map((friendId) => {
+                    return { id: friendId, name: friendsData[friendId].name };
+                  });
+
+                  friendsList.sort((a, b) => a.name.localeCompare(b.name));
+
+                  setFriends(friendsList);
+                } else {
+                  setFriends([]);
+                }
+              });
             }
           });
-
-          return unsubscribe; // Return the unsubscribe function to clean up the listener
         };
 
         fetchReviews();
@@ -105,8 +103,8 @@ const Reviews = ({ accessToken }) => {
     <View style={styles.container}>
       {profile && (
         <>
-          <Text style={styles.text}>Welcome, {profile.display_name}</Text>
-          <Text style={styles.text}>Your Reviews: </Text>
+          <Text style={styles.welcome}>Welcome, {profile.display_name}!</Text>
+          <Text style={styles.reviews}>Your Reviews: </Text>
           {reviews && (
             <ScrollView>
               {reviews.map((review, index) => (
@@ -123,7 +121,10 @@ const Reviews = ({ accessToken }) => {
                     <Text>Rating: {review.rating}</Text>
                   </View>
                 </TouchableOpacity>
-              ))}
+              ))} 
+              {//TODO: placeholder for friends name
+              }
+              <Text style={styles.friends}>Friends: {friends.map((friend) => friend.name).join(", ")}</Text>
             </ScrollView>
           )}
         </>
@@ -145,6 +146,7 @@ const Reviews = ({ accessToken }) => {
   );
 };
 
+
 const ReviewScreen = () => {
   const [accessToken, setAccessToken] = useState(null);
   useEffect(() => {
@@ -164,11 +166,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20,
   },
-  text: {
+  welcome: {
     fontSize: 18,
     fontWeight: "bold",
     marginVertical: 5,
     textAlign: "center",
+  },
+  reviews: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 5,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  friends: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 5,
+    textAlign: "center",
+    marginTop: 10,
+    marginBottom: 20,
   },
   profileImage: {
     width: 100,
@@ -193,6 +210,7 @@ const styles = StyleSheet.create({
   },
   reviewText: {
     marginBottom: 5,
+    width: 200,
     maxWidth: "90%",
   },
 });
