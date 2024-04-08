@@ -87,10 +87,30 @@ const getTopTracksOfArtist = async (accessToken, artistId) => {
   return data;
 };
 
+/**
+ * Retrieves the image of a specific artist by their ID.
+ * @param {string} accessToken - The access token for the Spotify API.
+ * @param {string} artistId - The Spotify ID of the artist.
+ * @returns {Promise<Object>} The top tracks of the artist.
+ */
+const getArtistById = async (accessToken, artistId) => {
+  const response = await fetch(
+    `${BASE_URL}/artists/${artistId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  const data = await response.json();
+  return data;
+};
+
 module.exports = {
   searchSpotify,
   getSongById,
   getAlbumById,
   getTracksOfAlbum,
   getTopTracksOfArtist,
+  getArtistById
 };

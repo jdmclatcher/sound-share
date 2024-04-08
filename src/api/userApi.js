@@ -37,7 +37,7 @@ const getCurrentUserPlaylists = async (accessToken) => {
  * @returns {Promise<Object>} The user's top artists.
  */
 const getCurrentUserTopArtists = async (accessToken, limit) => {
-  const response = await fetch(`${BASE_URL}/me/top/artists?limit=${limit}`, {
+  const response = await fetch(`${BASE_URL}/me/top/artists?time_range=short_term&limit=${limit}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -53,7 +53,7 @@ const getCurrentUserTopArtists = async (accessToken, limit) => {
  * @returns {Promise<Object>} The user's top artists.
  */
 const getCurrentUserTopTracks = async (accessToken, limit) => {
-  const response = await fetch(`${BASE_URL}/me/top/tracks?limit=${limit}`, {
+  const response = await fetch(`${BASE_URL}/me/top/tracks?time_range=short_term&limit=${limit}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Button } from "react-native";
 import { refresh, authenticate, isLoggedIn } from "../auth/SpotifyAuth";
 import RecentlyPlayed from "../components/RecentlyPlayed";
 import TopTracks from "../components/TopTracks";
+import TopArtists from "../components/TopArtists";
 import * as SecureStore from "expo-secure-store";
 
 const getAccessToken = async () => {
@@ -33,16 +34,17 @@ const HomeScreen = () => {
   useEffect(() => {
     fetchAccessToken(setAccessToken);
   }, []);
+  
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Sound Share</Text>
       {isLoggedIn() ? (
         <Text style={styles.text}>
-          Welcome to Sound Share! Select a song from your Spotify history below
+          Welcome to Sound Share! Select a song or artist from your Spotify history below
           to begin reviewing music.
         </Text>
       ) : (
-        <View>
+        <View style={styles.loginContainer}>
           <Text style={styles.text}>
             Click the button below to login to Spotify and start reviewing
             music.
@@ -57,6 +59,7 @@ const HomeScreen = () => {
       )}
       <RecentlyPlayed accessToken={accessToken} limit={10} />
       <TopTracks accessToken={accessToken} limit={10} />
+      <TopArtists accessToken={accessToken} limit={10} />
     </View>
   );
 };
@@ -66,19 +69,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 10,
   },
   heading: {
     fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
-    paddingBottom: 10,
-    paddingTop: 10,
+    marginTop: 20,
+    marginBottom: 20,
   },
   text: {
     fontSize: 16,
-    marginVertical: 10,
     textAlign: "center",
-    marginHorizontal: 30,
+    marginBottom: 20,
+  },
+  loginContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
 });
 
