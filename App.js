@@ -7,6 +7,7 @@ import SearchScreen from "./src/screens/Search";
 import AddReview from "./src/screens/AddReview";
 import ReviewScreen from "./src/screens/Reviews";
 import ArtistProfileScreen from "./src/screens/ArtistProfile";
+import FindUsers from "./src/screens/FindUsers";
 
 const Tab = createBottomTabNavigator();
 
@@ -72,7 +73,16 @@ export default function App() {
           }}
         />
         <Tab.Screen
-          name="ArtistProfile"
+          name="Find Users"
+          component={FindUsers}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="account" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Artist Profile"
           component={ArtistProfileScreen}
           options={{
             tabBarButton: () => null,

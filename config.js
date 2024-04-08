@@ -15,6 +15,7 @@ import {
   EXPO_PUBLIC_APP_ID,
   EXPO_PUBLIC_MEASUREMENT_ID,
 } from "@env";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: EXPO_PUBLIC_API_KEY,
@@ -39,7 +40,7 @@ if (!getApps().length) {
   firebaseApp = getApp(); // if app already initialized, use that one
 }
 
-const db = getFirestore(firebaseApp);
+const db = getDatabase(firebaseApp);
 // const auth = getAuth(firebaseApp);
 
 // export { db as firebase, auth };
