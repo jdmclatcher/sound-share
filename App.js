@@ -2,11 +2,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import HomeScreen from "./src/screens/Home";
-import ProfileScreen from "./src/screens/Profile";
 import SearchScreen from "./src/screens/Search";
 import AddReview from "./src/screens/AddReview";
 import ReviewScreen from "./src/screens/Reviews";
-import ArtistProfileScreen from "./src/screens/ArtistProfile";
+import ArtistProfile from "./src/screens/ArtistProfile";
 import FindUsers from "./src/screens/FindUsers";
 
 const Tab = createBottomTabNavigator();
@@ -18,10 +17,10 @@ export default function App() {
         screenOptions={{
           tabBarStyle: {
             display: "flex",
-            backgroundColor: "#04A777", 
+            backgroundColor: "#04A777",
           },
-          tabBarActiveTintColor: "#FFFFFF", 
-          tabBarInactiveTintColor: "#CCCCCC", 
+          tabBarActiveTintColor: "#FFFFFF",
+          tabBarInactiveTintColor: "#CCCCCC",
           headerStyle: {
             backgroundColor: "#04A777",
           },
@@ -77,16 +76,20 @@ export default function App() {
           component={FindUsers}
           options={{
             tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="account" color={color} size={size} />
+              <MaterialCommunityIcons
+                name="account"
+                color={color}
+                size={size}
+              />
             ),
           }}
         />
         <Tab.Screen
-          name="Artist Profile"
-          component={ArtistProfileScreen}
+          name="ArtistProfile"
+          component={ArtistProfile}
           options={{
             tabBarButton: () => null,
-            title: "Artist Profile", 
+            title: "Artist Profile",
           }}
         />
         <Tab.Screen
@@ -94,7 +97,7 @@ export default function App() {
           component={AddReview}
           options={{
             tabBarButton: () => null,
-            title: "Add Review", 
+            title: "Add Review",
           }}
         />
       </Tab.Navigator>
