@@ -38,7 +38,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
           onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-              // Fetching reviews
               const reviewsRef = ref(firebase, `users/${userId}/reviews`);
               onValue(reviewsRef, async (reviewSnapshot) => {
                 const reviewData = reviewSnapshot.val();
@@ -49,7 +48,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
                       const songId = review.spotifySongId;
                       let musicData;
                       let albumArt;
-                      // 0 for songs, 1 for albums
                       if (review.musicType === 0) {
                         musicData = await getSongById(accessToken, songId);
                         albumArt = musicData.album.images[0].url;
@@ -100,6 +98,18 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
       {profile && (
         <>
           <Text style={styles.welcome}>Welcome, {profile.display_name}!</Text>
+		  <Text style={styles.friends}>
+			{friends ? 'Your Friends:' : 'No friends added yet.'}
+			</Text>
+			{friends && (
+			<ScrollView>
+				{friends.map((friend) => (
+				<Text key={friend.id} style={styles.friend}>
+					{friend.name}
+				</Text>
+				))}
+			</ScrollView>
+			)}
           <Text style={styles.reviews}>
             {reviews ? "Your Reviews:" : "No reviews added yet."}
           </Text>
@@ -124,12 +134,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
                   </View>
                 </TouchableOpacity>
               ))}
-              {
-                // TODO: placeholder for friends name
-              }
-              <Text style={styles.friends}>
-                Friends: {friends.map((friend) => friend.name).join(", ")}
-              </Text>
             </ScrollView>
           )}
         </>
@@ -175,63 +179,64 @@ const ReviewScreen = ({ setIsLoggedIn }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  welcome: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 5,
-    textAlign: "center",
-  },
-  reviews: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 5,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  friends: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 5,
-    textAlign: "center",
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginTop: 10,
-  },
-  reviewContainer: {
-    marginBottom: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  albumArt: {
-    width: 60,
-    height: "100%",
-    marginRight: 10,
-    aspectRatio: 1,
-  },
-  reviewType: {
-    fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  songTitle: {
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  reviewText: {
-    marginBottom: 5,
-    width: 200,
-    maxWidth: "90%",
-  },
+	container: {
+		flex: 1,
+		justifyContent: 'center',
+		padding: 20,
+	},
+	welcome: {
+		fontSize: 20,
+		fontWeight: 'bold',
+		marginVertical: 5,
+		textAlign: 'center',
+		marginBottom: 20,
+	},
+	reviews: {
+		fontSize: 18,
+		fontWeight: 'bold',
+		marginVertical: 5,
+		textAlign: 'center',
+		marginBottom: 20,
+	},
+	friends: {
+		fontSize: 18,
+		fontWeight: 'bold',
+		marginVertical: 5,
+		textAlign: 'center',
+		marginTop: 10,
+	},
+	friend: {
+		fontSize: 16,
+		marginVertical: 5,
+		textAlign: 'center',
+		marginTop: 10,
+	},
+	profileImage: {
+		width: 100,
+		height: 100,
+		borderRadius: 50,
+		marginTop: 10,
+	},
+	reviewContainer: {
+		marginBottom: 20,
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
+	albumArt: {
+		width: 60,
+		height: '100%',
+		marginRight: 10,
+		aspectRatio: 1,
+	},
+	songTitle: {
+		fontWeight: 'bold',
+		marginBottom: 5,
+	},
+	reviewText: {
+		marginBottom: 5,
+		width: 200,
+		maxWidth: '90%',
+	},
 });
 
 export default ReviewScreen;

@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Button, Text } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
+import { firebase } from '../../config.js';
+import { ref, set, get } from 'firebase/database';
 import {
 	makeRedirectUri,
 	useAuthRequest,
@@ -14,7 +16,7 @@ import {
 } from '@env';
 import * as SecureStore from 'expo-secure-store';
 import { encode as btoa } from 'base-64';
-
+import { getCurrentUserProfile } from '../api/userApi.js';
 WebBrowser.maybeCompleteAuthSession();
 
 const clientId = SPOTIFY_CLIENT_ID;
@@ -104,6 +106,11 @@ const authenticate = async (setIsLoggedIn) => {
 				'spotifyTokenExpirationTime',
 				expirationTime.toString()
 			);
+
+			const accessToken = tokens.access_token;
+			const userData = await getCurrentUserProfile(accessToken);
+			await createUserInDatabase(userData);
+			
 			console.log(
 				`Access token stored successfully. Access token: ${
 					tokens.access_token
@@ -226,3 +233,28 @@ module.exports = {
 	getAccessToken,
 	fetchAccessToken,
 };
+
+const createUserInDatabase = async (userData) => {
+	try {
+		console.log(userData);
+	  const { id, display_name } = userData;
+  
+	  const usersRef = ref(firebase, `users/${id}`);
+  
+	  const snapshot = await get(usersRef);
+	  if (snapshot.exists()) {
+		console.log('User already exists in the database:', snapshot.val());
+		return;
+	  }
+  
+	  const user = {
+		name: display_name,
+	  };
+  
+	  await set(usersRef, user);
+  
+	  console.log('User created in the database:', user);
+	} catch (error) {
+	  console.error('Error creating user in the database:', error);
+	}
+  };
