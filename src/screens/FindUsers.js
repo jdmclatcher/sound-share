@@ -64,6 +64,8 @@ const FindUsers = ({ route }) => {
 					return { id: friendId, name: data[friendId].name };
 				});
 				setUserFriends(list);
+			} else {
+				setUserFriends([]);
 			}
 		});
 	}
@@ -81,9 +83,14 @@ const FindUsers = ({ route }) => {
 			onValue(usersRef, (snapshot) => {
 				const data = snapshot.val();
 				if (data) {
-					const list = Object.keys(data).map((userId) => ({
-						id: userId, name: data[userId].name
-					}));
+					const list = Object.keys(data).map((userId) => {
+						const user = {
+							id: userId,
+							name: data[userId].name,
+							isPendingRequest: !!data[userId].friendRequests, 
+						};
+						return user;
+					});
 					if (profile) {
 						setUserResults(list.filter((user) => user.id !== profile.id));
 					} else {
@@ -188,12 +195,11 @@ const FindUsers = ({ route }) => {
 		}
 		return false;
 	};
-
 	const handleNewRequest = (userId) => {
 		if (accessToken) {
 			getCurrentUserProfile(accessToken).then(async (profile) => {
 				setProfile(profile);
-
+	
 				try {
 					const userProfile = await getCurrentUserProfile(accessToken);
 					const username = userProfile.id;
@@ -201,12 +207,20 @@ const FindUsers = ({ route }) => {
 					if (!username) {
 						throw new Error('Username not found in user profile');
 					}
-
-					if (!isFriend(userId) && userId != username) {
+	
+					if (!isFriend(userId) && userId !== username) {
 						const friendData = { name: name };
 						const newRef = ref(firebase, `users/${userId}/friendRequests/${username}`);
 						await set(newRef, friendData);
 						console.log('Friend request added successfully');
+	
+						const updatedUserResults = userResults.map(user => {
+							if (user.id === userId) {
+								return { ...user, isPendingRequest: true };
+							}
+							return user;
+						});
+						setUserResults(updatedUserResults);
 					} else {
 						console.log(
 							'User is already a friend or trying to add yourself as friend'
@@ -218,6 +232,29 @@ const FindUsers = ({ route }) => {
 			});
 		}
 	};
+	
+	const renderUserItem = ({ item }) => (
+		<TouchableOpacity
+			//onPress={() => navigation.navigate("UserProfile", { userId: item.id })}
+			style={styles.userResultItem}
+		>
+			<Text style={styles.userName}>{item.name}</Text>
+			{userFriends.some((friend) => friend.id === item.id) ? (
+				<TouchableOpacity onPress={() => handleRemoveFriend(item.id)}>
+					<Text style={styles.removeFriendButton}>Remove Friend</Text>
+				</TouchableOpacity>
+			) : (
+				item.isPendingRequest ? (
+					<Text style={styles.pendingRequest}>Request Pending</Text>
+				) : (
+					<TouchableOpacity onPress={() => handleNewRequest(item.id)}>
+						<Text style={styles.addFriendButton}>Add Friend</Text>
+					</TouchableOpacity>
+				)
+			)}
+		</TouchableOpacity>
+	);
+	
 
 	const handleAddFriend = (userId, userName) => {
 		if (accessToken) {
@@ -304,6 +341,8 @@ const FindUsers = ({ route }) => {
 						`users/${userId}/friends/${username}`
 					);
 					await remove(friendFriendRef);
+
+					updateUserFriends(); 
 	
 					console.log('Friend removed successfully');
 				} catch (error) {
@@ -313,23 +352,7 @@ const FindUsers = ({ route }) => {
 		}
 	};
 	
-	const renderUserItem = ({ item }) => (
-		<TouchableOpacity
-			//onPress={() => navigation.navigate("UserProfile", { userId: item.id })}
-			style={styles.userResultItem}
-		>
-			<Text style={styles.userName}>{item.name}</Text>
-			{!userFriends.some((friend) => friend.id === item.id) ? (
-				<TouchableOpacity onPress={() => handleNewRequest(item.id)}>
-					<Text style={styles.addFriendButton}>Add Friend</Text>
-				</TouchableOpacity>
-			) : (
-				<TouchableOpacity onPress={() => handleRemoveFriend(item.id)}>
-					<Text style={styles.addFriendButton}>Remove Friend</Text>
-				</TouchableOpacity>
-			)}
-		</TouchableOpacity>
-	);
+	
 
 	return (
 		<View style={styles.container}>
@@ -432,6 +455,17 @@ const styles = StyleSheet.create({
 	requestButtonsContainer: {
 		flexDirection: 'row',
 	},	
+	removeFriendButton: {
+		fontSize: 16,
+		color: 'red',
+		paddingRight: 8,
+	},
+	pendingRequest: {
+		fontSize: 16,
+		color: 'gray',
+		paddingRight: 8,
+	},
+	
 });
 
 export default FindUsers;
