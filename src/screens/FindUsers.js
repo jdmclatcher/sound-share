@@ -32,6 +32,7 @@ const FindUsers = ({ route }) => {
 	const [userFriends, setUserFriends] = useState([]);
 	const [profile, setProfile] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [friendRequests, setFriendRequests] = useState([]);
 
 	/**
 	 * Asynchronously fetches and updates the user's profile from Firebase using a provided access token.
@@ -95,6 +96,33 @@ const FindUsers = ({ route }) => {
 		}
 	}
 
+	/**
+	 * Fetches and updates the list of friend requests for the current user from Firebase.
+	 *
+	 * @function updateFriendRequests
+	 * @description Subscribes to the friend requests node in Firebase for the current user and updates the React state with the list of friend requests.
+	 * @returns {void} This function does not return a value but updates the state directly.
+	 */
+	function updateFriendRequests() {
+		try {
+			const id = profile.id;
+			const friendRequestsRef = ref(firebase, `users/${id}/friendRequests`);
+			onValue(friendRequestsRef, (snapshot) => {
+				const data = snapshot.val();
+				if (data) {
+					const list = Object.keys(data).map((friendId) => {
+						return { id: friendId, name: data[friendId].name };
+					});
+					setFriendRequests(list);
+				} else {
+					setFriendRequests([]);
+				}
+			});
+		} catch {
+			console.error('Error updating friend requests');
+		}
+	}
+
 	const searchUsers = async (searchQuery) => {
 		try {
 			let queryRef;
@@ -144,6 +172,7 @@ const FindUsers = ({ route }) => {
 		if (profile) {
 			updateUserFriends();
 			updateAllUsers();
+			updateFriendRequests();
 		}
 	}, [profile]);
 
@@ -168,12 +197,13 @@ const FindUsers = ({ route }) => {
 				try {
 					const userProfile = await getCurrentUserProfile(accessToken);
 					const username = userProfile.id;
+					const name = userProfile.display_name;
 					if (!username) {
 						throw new Error('Username not found in user profile');
 					}
 
 					if (!isFriend(userId) && userId != username) {
-						const friendData = { name: username };
+						const friendData = { name: name };
 						const newRef = ref(firebase, `users/${userId}/friendRequests/${username}`);
 						await set(newRef, friendData);
 						console.log('Friend request added successfully');
@@ -207,6 +237,11 @@ const FindUsers = ({ route }) => {
 							firebase,
 							`users/${userId}/friends/${username}`
 						);
+						const currentUserFriendRef = ref(
+							firebase,
+							`users/${username}/friendRequests/${userId}`
+						);
+						await remove(currentUserFriendRef);
 						
 						const currentUserData = { name: profile.display_name};
 						await set(friendFriendRef, currentUserData);
@@ -222,6 +257,35 @@ const FindUsers = ({ route }) => {
 			});
 		}
 	};
+
+
+	const handleDenyRequest = (userId, userName) => {
+		if (accessToken) {
+			getCurrentUserProfile(accessToken).then(async (profile) => {
+				setProfile(profile);
+				try {
+					const username = profile.id;
+					updateUserFriends();
+					if (!isFriend(userId) && userId != username) {
+						const currentUserFriendRef = ref(
+							firebase,
+							`users/${username}/friendRequests/${userId}`
+						);
+						await remove(currentUserFriendRef);
+						
+						console.log('Friend request denied');
+					} else {
+						console.log(
+							'User is already a friend or trying to add yourself as friend'
+						);
+					}
+				} catch (error) {
+					console.error('Error denying request: ', error);
+				}
+			});
+		}
+	};
+
 
 	const handleRemoveFriend = (userId) => {
 		if (accessToken) {
@@ -256,7 +320,7 @@ const FindUsers = ({ route }) => {
 		>
 			<Text style={styles.userName}>{item.name}</Text>
 			{!userFriends.some((friend) => friend.id === item.id) ? (
-				<TouchableOpacity onPress={() => handleAddFriend(item.id, item.name)}>
+				<TouchableOpacity onPress={() => handleNewRequest(item.id)}>
 					<Text style={styles.addFriendButton}>Add Friend</Text>
 				</TouchableOpacity>
 			) : (
@@ -269,6 +333,24 @@ const FindUsers = ({ route }) => {
 
 	return (
 		<View style={styles.container}>
+			{friendRequests.length > 0 && ( 
+				<View style={styles.friendRequestsContainer}>
+					<Text style={styles.friendRequestsHeader}>Friend Requests:</Text>
+					{friendRequests.map((request) => (
+					<View key={request.id}>
+						<Text style={styles.friendRequest}>{request.name}</Text>
+						<View style={styles.requestButtonsContainer}>
+							<TouchableOpacity onPress={() => handleAddFriend(request.id, request.name)}>
+								<Text style={styles.approveRequestButton}>Approve</Text>
+							</TouchableOpacity>
+							<TouchableOpacity onPress={() => handleDenyRequest(request.id)}>
+								<Text style={styles.denyRequestButton}>Deny</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				))}
+				</View>
+			)}
 			<TextInput
 				style={styles.searchInput}
 				value={searchQuery}
@@ -287,6 +369,7 @@ const FindUsers = ({ route }) => {
 			)}
 		</View>
 	);
+	
 };
 
 const styles = StyleSheet.create({
@@ -302,6 +385,18 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 		fontSize: 16,
 		backgroundColor: '#f2f2f2',
+	},
+	friendRequestsContainer: {
+		marginBottom: 16,
+	},
+	friendRequestsHeader: {
+		fontSize: 18,
+		fontWeight: 'bold',
+		marginBottom: 8,
+	},
+	friendRequest: {
+		fontSize: 16,
+		marginBottom: 8,
 	},
 	resultsList: {
 		flex: 1,
@@ -324,6 +419,19 @@ const styles = StyleSheet.create({
 		color: 'blue',
 		paddingRight: 8,
 	},
+	approveRequestButton: {
+		fontSize: 16,
+		color: 'green',
+		paddingRight: 8,
+	},
+	denyRequestButton: {
+		fontSize: 16,
+		color: 'red',
+		paddingRight: 8,
+	},
+	requestButtonsContainer: {
+		flexDirection: 'row',
+	},	
 });
 
 export default FindUsers;

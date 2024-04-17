@@ -38,7 +38,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
           onValue(userRef, (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-              // Fetching reviews
               const reviewsRef = ref(firebase, `users/${userId}/reviews`);
               onValue(reviewsRef, async (reviewSnapshot) => {
                 const reviewData = reviewSnapshot.val();
@@ -49,7 +48,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
                       const songId = review.spotifySongId;
                       let musicData;
                       let albumArt;
-                      // 0 for songs, 1 for albums
                       if (review.musicType === 0) {
                         musicData = await getSongById(accessToken, songId);
                         albumArt = musicData.album.images[0].url;
@@ -100,6 +98,18 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
       {profile && (
         <>
           <Text style={styles.welcome}>Welcome, {profile.display_name}!</Text>
+		  <Text style={styles.friends}>
+			{friends ? 'Your Friends:' : 'No friends added yet.'}
+			</Text>
+			{friends && (
+			<ScrollView>
+				{friends.map((friend) => (
+				<Text key={friend.id} style={styles.friend}>
+					{friend.name}
+				</Text>
+				))}
+			</ScrollView>
+			)}
           <Text style={styles.reviews}>
             {reviews ? "Your Reviews:" : "No reviews added yet."}
           </Text>
@@ -124,12 +134,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
                   </View>
                 </TouchableOpacity>
               ))}
-              {
-                // TODO: placeholder for friends name
-              }
-              <Text style={styles.friends}>
-                Friends: {friends.map((friend) => friend.name).join(", ")}
-              </Text>
             </ScrollView>
           )}
         </>
@@ -181,10 +185,11 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	welcome: {
-		fontSize: 18,
+		fontSize: 20,
 		fontWeight: 'bold',
 		marginVertical: 5,
 		textAlign: 'center',
+		marginBottom: 20,
 	},
 	reviews: {
 		fontSize: 18,
@@ -199,7 +204,12 @@ const styles = StyleSheet.create({
 		marginVertical: 5,
 		textAlign: 'center',
 		marginTop: 10,
-		marginBottom: 20,
+	},
+	friend: {
+		fontSize: 16,
+		marginVertical: 5,
+		textAlign: 'center',
+		marginTop: 10,
 	},
 	profileImage: {
 		width: 100,
