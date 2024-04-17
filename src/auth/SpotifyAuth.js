@@ -236,7 +236,6 @@ module.exports = {
 
 const createUserInDatabase = async (userData) => {
 	try {
-		console.log(userData);
 	  const { id, display_name } = userData;
   
 	  const usersRef = ref(firebase, `users/${id}`);

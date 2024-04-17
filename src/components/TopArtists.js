@@ -44,7 +44,7 @@ const TopArtists = ({ accessToken, limit }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Top Artists This Month</Text>
-      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={true}>
         {artistDetails &&
           artistDetails.map((item) => (
             <View key={item.id} style={styles.artistContainer}>

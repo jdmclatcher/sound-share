@@ -44,7 +44,7 @@ const TopTracks = ({ accessToken, limit }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Top Tracks This Month</Text>
-      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={true}>
         {trackDetails &&
           trackDetails.map((item) => (
             <View key={item.id} style={styles.trackContainer}>
