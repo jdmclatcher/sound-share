@@ -37,7 +37,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
 					onValue(userRef, (snapshot) => {
 						const userData = snapshot.val();
 						if (userData) {
-							// Fetching reviews
 							const reviewsRef = ref(firebase, `users/${userId}/reviews`);
 							onValue(reviewsRef, async (reviewSnapshot) => {
 								const reviewData = reviewSnapshot.val();
@@ -91,6 +90,19 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
 			{profile && (
 				<>
 					<Text style={styles.welcome}>Welcome, {profile.display_name}!</Text>
+					{
+						// TODO: placeholder for friends name
+					}
+					<Text style={styles.reviews}>
+						{reviews ? 'Your Friends:' : 'No friends added yet.'}
+					</Text>
+					{friends && (
+						<ScrollView>
+							<Text style={styles.friends}>
+								{friends.map((friend) => friend.name)}
+							</Text>
+						</ScrollView>
+					)}
 					<Text style={styles.reviews}>
 						{reviews ? 'Your Reviews:' : 'No reviews added yet.'}
 					</Text>
@@ -111,12 +123,6 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
 									</View>
 								</TouchableOpacity>
 							))}
-							{
-								// TODO: placeholder for friends name
-							}
-							<Text style={styles.friends}>
-								Friends: {friends.map((friend) => friend.name).join(', ')}
-							</Text>
 						</ScrollView>
 					)}
 				</>
@@ -165,7 +171,7 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	friends: {
-		fontSize: 18,
+		fontSize: 16,
 		fontWeight: 'bold',
 		marginVertical: 5,
 		textAlign: 'center',

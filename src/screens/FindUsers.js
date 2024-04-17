@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	Text,
 	StyleSheet,
+	ActivityIndicator,
 } from 'react-native';
 import { firebase } from '../../config.js';
 import { getCurrentUserProfile } from '../api/userApi';
@@ -29,9 +30,10 @@ const FindUsers = ({ route }) => {
 	const [userResults, setUserResults] = useState([]);
 	const [userFriends, setUserFriends] = useState([]);
 	const [profile, setProfile] = useState(null);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const searchUsers = async (searchQuery) => {
-		// TODO: filter out yourself & users already friends with so you can remove button
+		setIsLoading(true);
 		try {
 			const usersRef = ref(firebase, 'users');
 			let queryRef;
@@ -47,7 +49,9 @@ const FindUsers = ({ route }) => {
 					endAt(lowercaseQuery + '\uf8ff')
 				);
 			}
-
+			
+			const userProfile = await getCurrentUserProfile(accessToken);
+			const username = userProfile.id;
 			const snapshot = await get(queryRef);
 			const users = snapshot.val();
 			if (users) {
@@ -55,13 +59,15 @@ const FindUsers = ({ route }) => {
 					id: userId,
 					uid: users[userId].uid,
 				}));
-				setUserResults(userList);
+				const filteredUserList = userList.filter(user => user.id !== username);
+				setUserResults(filteredUserList);
 			} else {
 				setUserResults([]);
 			}
 		} catch (error) {
 			console.error('Error searching users:', error);
 		}
+		setIsLoading(false);
 	};
 
 	useEffect(() => {
@@ -76,6 +82,33 @@ const FindUsers = ({ route }) => {
 		fetchAccessToken(setAccessToken);
 	}, []);
 
+	useEffect(() => {
+		if (accessToken) {
+			setIsLoading(true); 
+			getCurrentUserProfile(accessToken)
+				.then(profile => {
+					setProfile(profile);
+					searchUsers('');
+					const currentUserFriendRef = ref(
+						firebase,
+						`users/${profile.id}/friends`
+					);
+	
+					onValue(currentUserFriendRef, (friendsSnapshot) => {
+						const friendsData = friendsSnapshot.val();
+						if (friendsData) {
+							const friendsList = Object.keys(friendsData).map((friendId) => {
+								return { id: friendId, name: friendsData[friendId].name };
+							});
+							setUserFriends(friendsList);
+						}
+					});
+				})
+				.catch(error => console.error('Error fetching user profile:', error))
+		}
+	}, [accessToken]);
+	
+
 	const isFriend = (userId) => {
 		for (const friend of userFriends) {
 			if (friend.id === userId) {
@@ -85,7 +118,36 @@ const FindUsers = ({ route }) => {
 		return false;
 	};
 
-	const handleAddFriend = (userId) => {
+	const handleSendFriendRequest = (userId) => {
+		if (accessToken) {
+			getCurrentUserProfile(accessToken).then(async (profile) => {
+				setProfile(profile);
+
+				try {
+					const userProfile = await getCurrentUserProfile(accessToken);
+					const username = userProfile.id;
+					if (!username) {
+						throw new Error('Username not found in user profile');
+					}
+
+					if (!isFriend(userId) && userId != username) {
+						const friendData = { name: username };
+						const newRef = ref(firebase, `users/${userId}/friendRequests/${username}`);
+						await set(newRef, friendData);
+						console.log('Friend request added successfully');
+					} else {
+						console.log(
+							'User is already a friend or trying to add yourself as friend'
+						);
+					}
+				} catch (error) {
+					console.error('Error adding friend: ', error);
+				}
+			});
+		}
+	};
+
+	const handleApproveRequest = (userId) => {
 		if (accessToken) {
 			getCurrentUserProfile(accessToken).then(async (profile) => {
 				setProfile(profile);
@@ -135,17 +197,25 @@ const FindUsers = ({ route }) => {
 		}
 	};
 
-	const renderUserItem = ({ item }) => (
-		<TouchableOpacity
-			//onPress={() => navigation.navigate("UserProfile", { userId: item.id })}
-			style={styles.userResultItem}
-		>
-			<Text style={styles.userName}>{item.id}</Text>
-			<TouchableOpacity onPress={() => handleAddFriend(item.id)}>
-				<Text style={styles.addFriendButton}>Add Friend</Text>
+	const renderUserItem = ({ item }) => {
+		if (isLoading) {
+			return null; 
+		}
+	
+		return (
+			<TouchableOpacity
+				// onPress={() => navigation.navigate("UserProfile", { userId: item.id })}
+				style={styles.userResultItem}
+			>
+				<Text style={styles.userName}>{item.id}</Text>
+				{!isFriend(item.id) && ( 
+					<TouchableOpacity onPress={() => handleSendFriendRequest(item.id)}>
+						<Text style={styles.addFriendButton}>Add Friend</Text>
+					</TouchableOpacity>
+				)}
 			</TouchableOpacity>
-		</TouchableOpacity>
-	);
+		);
+	};
 
 	return (
 		<View style={styles.container}>
@@ -155,12 +225,16 @@ const FindUsers = ({ route }) => {
 				onChangeText={setQuery}
 				placeholder="Search for users"
 			/>
-			<FlatList
-				style={styles.resultsList}
-				data={userResults}
-				renderItem={renderUserItem}
-				keyExtractor={(item) => item.id}
-			/>
+			{isLoading ? ( 
+				<ActivityIndicator size="large" color="blue" />
+			) : (
+				<FlatList
+					style={styles.resultsList}
+					data={userResults}
+					renderItem={renderUserItem}
+					keyExtractor={(item) => item.id}
+				/>
+			)}
 		</View>
 	);
 };
