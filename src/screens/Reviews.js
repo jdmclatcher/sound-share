@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { getCurrentUserProfile } from "../api/userApi";
 import { getSongById, getAlbumById } from "../api/searchApi";
@@ -136,8 +137,24 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
       <Button
         title="Log Out"
         onPress={() => {
-          logOut();
-          setIsLoggedIn(false);
+          Alert.alert(
+            "Confirmation",
+            "Are you sure you want to log out?",
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Log Out",
+                onPress: () => {
+                  logOut();
+                  setIsLoggedIn(false);
+                },
+              },
+            ],
+            { cancelable: false }
+          );
         }}
       />
     </View>

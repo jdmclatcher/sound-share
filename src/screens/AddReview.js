@@ -74,7 +74,7 @@ const AddReview = ({ route }) => {
   };
 
   useEffect(() => {
-    console.log("Review Type: " + type);
+    // console.log("Review Type: " + type);
     if (accessToken) {
       const fetchMusicData = () => {
         setLoadingMusicData(true);
@@ -134,9 +134,9 @@ const AddReview = ({ route }) => {
               <Image
                 source={{
                   uri:
-                    type == 1
-                      ? musicData.images[0].url
-                      : musicData.album.images[0].url,
+                    type == 0
+                      ? musicData.album?.images?.[0]?.url
+                      : musicData?.images?.[0]?.url,
                 }}
                 style={styles.albumCover}
               />

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { searchSpotify } from "../api/searchApi";
 import * as SecureStore from "expo-secure-store";
+import SwitchSelector from "react-native-switch-selector";
 import {
   refresh,
   authenticate,
@@ -48,7 +49,6 @@ const Search = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => {
-        console.log("Search Type: " + searchType);
         navigation.navigate("AddReview", {
           id: item.id,
           type: searchType,
@@ -69,23 +69,21 @@ const Search = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Button
-        title="Songs"
-        onPress={() => {
-          setSearchType(0);
+      <SwitchSelector
+        options={[
+          { label: "Songs", value: 0 },
+          { label: "Albums", value: 1 },
+        ]}
+        initial={searchType}
+        onPress={(value) => {
+          setSearchType(value);
           setQuery("");
           setResults([]);
         }}
-        style={searchType === 0 ? styles.activeButton : styles.inactiveButton}
-      />
-      <Button
-        title="Albums"
-        onPress={() => {
-          setSearchType(1);
-          setQuery("");
-          setResults([]);
-        }}
-        style={searchType === 1 ? styles.activeButton : styles.inactiveButton}
+        buttonColor="#04A777"
+        textStyle={styles.switchSelectorText}
+        selectedTextStyle={styles.switchSelectorSelectedText}
+        style={styles.switchSelector}
       />
       <TextInput
         style={styles.searchInput}
@@ -162,6 +160,9 @@ const styles = StyleSheet.create({
     backgroundColor: "gray",
     color: "black",
     marginRight: 8,
+  },
+  switchSelector: {
+    marginBottom: 16,
   },
 });
 
