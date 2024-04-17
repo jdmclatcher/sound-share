@@ -68,24 +68,24 @@ const Search = ({ navigation }) => {
 
 	return (
 		<View style={styles.container}>
-			{/* <Button
-        title="Songs"
-        onPress={() => {
-          setSearchType(0);
-          setQuery("");
-          setResults([]);
-        }}
-        style={searchType === 0 ? styles.activeButton : styles.inactiveButton}
-      />
-      <Button
-        title="Albums"
-        onPress={() => {
-          setSearchType(1);
-          setQuery("");
-          setResults([]);
-        }}
-        style={searchType === 1 ? styles.activeButton : styles.inactiveButton}
-      /> */}
+			<Button
+				title="Songs"
+				onPress={() => {
+					setSearchType(0);
+					setQuery('');
+					setResults([]);
+				}}
+				style={searchType === 0 ? styles.activeButton : styles.inactiveButton}
+			/>
+			<Button
+				title="Albums"
+				onPress={() => {
+					setSearchType(1);
+					setQuery('');
+					setResults([]);
+				}}
+				style={searchType === 1 ? styles.activeButton : styles.inactiveButton}
+			/>
 			<TextInput
 				style={styles.searchInput}
 				value={query}
