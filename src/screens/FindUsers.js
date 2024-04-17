@@ -22,6 +22,7 @@ import {
 	push,
 	set,
 	onValue,
+	remove,
 } from 'firebase/database';
 
 const FindUsers = ({ route }) => {
@@ -40,10 +41,10 @@ const FindUsers = ({ route }) => {
 	 * @description Fetches the current user's profile based on the accessToken and updates the React state with this profile.
 	 * @returns {Promise<void>} A promise that resolves once the profile is fetched and the state is updated.
 	 */
-	async function updateUserProfile() {
+	const updateUserProfile = async () => {
 		const profile = await getCurrentUserProfile(accessToken);
-		setProfile(profile);
-	}
+		setProfile({ ...profile, name: profile.display_name }); 
+	};	
 
 	/**
 	 * Fetches the current user's friends from Firebase and updates the state.
@@ -80,7 +81,7 @@ const FindUsers = ({ route }) => {
 				const data = snapshot.val();
 				if (data) {
 					const list = Object.keys(data).map((userId) => ({
-						id: userId,
+						id: userId, name: data[userId].name
 					}));
 					if (profile) {
 						setUserResults(list.filter((user) => user.id !== profile.id));
@@ -99,7 +100,6 @@ const FindUsers = ({ route }) => {
 			let queryRef;
 			const lowercaseQuery = searchQuery.toLowerCase();
 			const usersRef = ref(firebase, 'users');
-			// by default, display all users
 			if (lowercaseQuery.trim().length === 0) {
 				queryRef = usersRef;
 			} else {
@@ -117,8 +117,7 @@ const FindUsers = ({ route }) => {
 			const users = snapshot.val();
 			if (users) {
 				const userList = Object.keys(users).map((userId) => ({
-					id: userId,
-					// uid: users[userId].uid, // this is undefined for all users so not sure what it is used for?
+					id: userId, name: users[userId].name
 				}));
 				if (profile) {
 					setUserResults(userList.filter((user) => user.id !== profile.id));
@@ -161,7 +160,7 @@ const FindUsers = ({ route }) => {
 		return false;
 	};
 
-	const handleAddFriend = (userId) => {
+	const handleNewRequest = (userId) => {
 		if (accessToken) {
 			getCurrentUserProfile(accessToken).then(async (profile) => {
 				setProfile(profile);
@@ -190,26 +189,26 @@ const FindUsers = ({ route }) => {
 		}
 	};
 
-	const handleApproveRequest = (userId) => {
+	const handleAddFriend = (userId, userName) => {
 		if (accessToken) {
 			getCurrentUserProfile(accessToken).then(async (profile) => {
 				setProfile(profile);
 				try {
 					const username = profile.id;
 					updateUserFriends();
-					// add friend functionality
-					if (!isFriend(userId) && userId != profileId) {
-						const friendData = { name: userId };
+					if (!isFriend(userId) && userId != username) {
+						const friendData = { name: userName};
 						const newRef = ref(
 							firebase,
-							`users/${profileId}/friends/${userId}`
+							`users/${username}/friends/${userId}`
 						);
 						await set(newRef, friendData);
 						const friendFriendRef = ref(
 							firebase,
-							`users/${userId}/friends/${profileId}`
+							`users/${userId}/friends/${username}`
 						);
-						const currentUserData = { name: profileId };
+						
+						const currentUserData = { name: profile.display_name};
 						await set(friendFriendRef, currentUserData);
 						console.log('Friend added successfully');
 					} else {
@@ -225,18 +224,39 @@ const FindUsers = ({ route }) => {
 	};
 
 	const handleRemoveFriend = (userId) => {
-		// TODO: implement remove friend functionality
+		if (accessToken) {
+			getCurrentUserProfile(accessToken).then(async (profile) => {
+				try {
+					const username = profile.id;
+	
+					const currentUserFriendRef = ref(
+						firebase,
+						`users/${username}/friends/${userId}`
+					);
+					await remove(currentUserFriendRef);
+	
+					const friendFriendRef = ref(
+						firebase,
+						`users/${userId}/friends/${username}`
+					);
+					await remove(friendFriendRef);
+	
+					console.log('Friend removed successfully');
+				} catch (error) {
+					console.error('Error removing friend: ', error);
+				}
+			});
+		}
 	};
-
+	
 	const renderUserItem = ({ item }) => (
 		<TouchableOpacity
 			//onPress={() => navigation.navigate("UserProfile", { userId: item.id })}
 			style={styles.userResultItem}
 		>
-			<Text style={styles.userName}>{item.id}</Text>
-			{/* if the user is a friend, give the option to remove the friend */}
+			<Text style={styles.userName}>{item.name}</Text>
 			{!userFriends.some((friend) => friend.id === item.id) ? (
-				<TouchableOpacity onPress={() => handleAddFriend(item.id)}>
+				<TouchableOpacity onPress={() => handleAddFriend(item.id, item.name)}>
 					<Text style={styles.addFriendButton}>Add Friend</Text>
 				</TouchableOpacity>
 			) : (
