@@ -64,6 +64,8 @@ const FindUsers = ({ route }) => {
 					return { id: friendId, name: data[friendId].name };
 				});
 				setUserFriends(list);
+			} else {
+				setUserFriends([]);
 			}
 		});
 	}
@@ -304,6 +306,8 @@ const FindUsers = ({ route }) => {
 						`users/${userId}/friends/${username}`
 					);
 					await remove(friendFriendRef);
+
+					updateUserFriends(); 
 	
 					console.log('Friend removed successfully');
 				} catch (error) {
@@ -319,13 +323,13 @@ const FindUsers = ({ route }) => {
 			style={styles.userResultItem}
 		>
 			<Text style={styles.userName}>{item.name}</Text>
-			{!userFriends.some((friend) => friend.id === item.id) ? (
-				<TouchableOpacity onPress={() => handleNewRequest(item.id)}>
-					<Text style={styles.addFriendButton}>Add Friend</Text>
+			{userFriends.some((friend) => friend.id === item.id) ? (
+				<TouchableOpacity onPress={() => handleRemoveFriend(item.id)}>
+					<Text style={styles.removeFriendButton}>Remove Friend</Text>
 				</TouchableOpacity>
 			) : (
-				<TouchableOpacity onPress={() => handleRemoveFriend(item.id)}>
-					<Text style={styles.addFriendButton}>Remove Friend</Text>
+				<TouchableOpacity onPress={() => handleNewRequest(item.id)}>
+					<Text style={styles.addFriendButton}>Add Friend</Text>
 				</TouchableOpacity>
 			)}
 		</TouchableOpacity>
@@ -432,6 +436,12 @@ const styles = StyleSheet.create({
 	requestButtonsContainer: {
 		flexDirection: 'row',
 	},	
+	removeFriendButton: {
+		fontSize: 16,
+		color: 'red',
+		paddingRight: 8,
+	},
+	
 });
 
 export default FindUsers;
