@@ -69,6 +69,7 @@ const AddReview = ({ route }) => {
       console.error("Error saving review to Firebase: ", error);
       Alert.alert("Error", "Failed to save review");
     } finally {
+      setReview("");
       setIsLoading(false);
     }
   };
