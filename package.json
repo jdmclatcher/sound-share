@@ -16,6 +16,7 @@
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.29",
     "base-64": "^1.0.0",
+    "eas-cli": "^7.8.2",
     "expo": "^49.0.23",
     "expo-auth-session": "~5.0.2",
     "expo-constants": "~14.4.2",
@@ -29,7 +30,8 @@
     "react-native-ratings": "^8.1.0",
     "react-native-safe-area-context": "4.6.3",
     "react-native-screens": "~3.22.0",
-    "react-native-switch-selector": "^2.3.0"
+    "react-native-switch-selector": "^2.3.0",
+    "expo-updates": "~0.18.19"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
