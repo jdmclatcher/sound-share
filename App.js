@@ -9,6 +9,8 @@ import ReviewScreen from './src/screens/Reviews';
 import ArtistProfile from './src/screens/ArtistProfile';
 import FindUsers from './src/screens/FindUsers';
 import { useState } from 'react';
+import ProfileScreen from './src/screens/Profile';
+import UserProfile from './src/screens/UserProfile';
 
 const Tab = createBottomTabNavigator();
 
@@ -55,18 +57,18 @@ function PostLogin({ setIsLoggedIn }) {
 					}}
 				/>
 				{/* <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons
-                name="account"
-                color={color}
-                size={size}
-              />
-            ),
-          }}
-        /> */}
+					name="Profile"
+					component={ProfileScreen}
+					options={{
+						tabBarIcon: ({ color, size }) => (
+						<MaterialCommunityIcons
+							name="account"
+							color={color}
+							size={size}
+						/>
+						),
+					}}
+				/> */}
 				<Tab.Screen
 					name="Reviews"
 					component={ReviewScreenWrapper}
@@ -103,6 +105,14 @@ function PostLogin({ setIsLoggedIn }) {
 					options={{
 						tabBarButton: () => null,
 						title: 'Add Review',
+					}}
+				/>
+				<Tab.Screen
+					name="UserProfile"
+					component={UserProfile}
+					options={{
+						tabBarButton: () => null,
+						title: "Friends' Profile"
 					}}
 				/>
 			</Tab.Navigator>
