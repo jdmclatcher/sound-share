@@ -25,7 +25,7 @@ const scopes = [
   "user-library-read",
   "user-read-recently-played",
 ];
-const redirectUri = Linking.createURL("/redirect");
+const redirectUri = Linking.createURL("");
 
 const deleteTokens = async () => {
   await SecureStore.deleteItemAsync("spotifyAccessToken");
