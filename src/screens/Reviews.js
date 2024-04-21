@@ -98,32 +98,30 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
       {profile && (
         <>
           <Text style={styles.welcome}>Welcome, {profile.display_name}!</Text>
-		  <Text style={styles.friends}>
-			{friends ? 'Your Friends:' : 'No friends added yet.'}
-			</Text>
-			{friends && (
-			<ScrollView>
-				{friends.map((friend) => (
-				<Text key={friend.id} style={styles.friend}>
-					{friend.name}
-				</Text>
-				))}
-			</ScrollView>
-			)}
+          <Text style={styles.friends}>
+            {friends ? "Your Friends:" : "No friends added yet."}
+          </Text>
+          {friends && (
+            <ScrollView>
+              {friends.map((friend) => (
+                <Text key={friend.id} style={styles.friend}>
+                  {friend.name}
+                </Text>
+              ))}
+            </ScrollView>
+          )}
           <Text style={styles.reviews}>
             {reviews ? "Your Reviews:" : "No reviews added yet."}
           </Text>
           {reviews && (
             <ScrollView>
               {reviews.map((review, index) => (
-                <TouchableOpacity 
-                  // key={index} 
+                <TouchableOpacity
+                  // key={index}
                   // style={styles.reviewContainer}
-                  key = { review.id }
+                  key={review.id}
                   style={styles.reviewContainer}
-                  onLongPress={() => 
-                    handleDeleteReview(profile.id, review.id)
-                  }
+                  onLongPress={() => handleDeleteReview(profile.id, review.id)}
                 >
                   <Image
                     source={{ uri: review.albumArt }}
@@ -194,12 +192,12 @@ const handleDeleteReview = (userId, reviewId) => {
             .then(() => {
               Alert.alert("Review deleted successfully.");
             })
-            .catch(error => {
+            .catch((error) => {
               console.error("Error deleting review: ", error);
               Alert.alert("Error", "There was an error deleting the review.");
             });
-        }
-      }
+        },
+      },
     ],
     { cancelable: false }
   );
@@ -219,64 +217,64 @@ const ReviewScreen = ({ setIsLoggedIn }) => {
 };
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'center',
-		padding: 20,
-	},
-	welcome: {
-		fontSize: 20,
-		fontWeight: 'bold',
-		marginVertical: 5,
-		textAlign: 'center',
-		marginBottom: 20,
-	},
-	reviews: {
-		fontSize: 18,
-		fontWeight: 'bold',
-		marginVertical: 5,
-		textAlign: 'center',
-		marginBottom: 20,
-	},
-	friends: {
-		fontSize: 18,
-		fontWeight: 'bold',
-		marginVertical: 5,
-		textAlign: 'center',
-		marginTop: 10,
-	},
-	friend: {
-		fontSize: 16,
-		marginVertical: 5,
-		textAlign: 'center',
-		marginTop: 10,
-	},
-	profileImage: {
-		width: 100,
-		height: 100,
-		borderRadius: 50,
-		marginTop: 10,
-	},
-	reviewContainer: {
-		marginBottom: 20,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	albumArt: {
-		width: 60,
-		height: '100%',
-		marginRight: 10,
-		aspectRatio: 1,
-	},
-	songTitle: {
-		fontWeight: 'bold',
-		marginBottom: 5,
-	},
-	reviewText: {
-		marginBottom: 5,
-		width: 200,
-		maxWidth: '90%',
-	},
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  welcome: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginVertical: 5,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  reviews: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 5,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  friends: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 5,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  friend: {
+    fontSize: 16,
+    marginVertical: 5,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginTop: 10,
+  },
+  reviewContainer: {
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  albumArt: {
+    width: 60,
+    height: "100%",
+    marginRight: 10,
+    aspectRatio: 1,
+  },
+  songTitle: {
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  reviewText: {
+    marginBottom: 5,
+    width: 200,
+    maxWidth: "90%",
+  },
 });
 
 export default ReviewScreen;

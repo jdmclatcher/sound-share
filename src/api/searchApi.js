@@ -94,14 +94,11 @@ const getTopTracksOfArtist = async (accessToken, artistId) => {
  * @returns {Promise<Object>} The top tracks of the artist.
  */
 const getArtistById = async (accessToken, artistId) => {
-  const response = await fetch(
-    `${BASE_URL}/artists/${artistId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/artists/${artistId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
   const data = await response.json();
   return data;
 };
@@ -112,5 +109,5 @@ module.exports = {
   getAlbumById,
   getTracksOfAlbum,
   getTopTracksOfArtist,
-  getArtistById
+  getArtistById,
 };

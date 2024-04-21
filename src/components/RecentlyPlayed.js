@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   touchableContainer: {
     alignItems: "center",
-    width: 110, 
+    width: 110,
   },
   albumArt: {
     width: 100,

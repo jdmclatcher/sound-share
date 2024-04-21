@@ -58,7 +58,10 @@ const TopArtists = ({ accessToken, limit }) => {
                 style={styles.touchableContainer}
               >
                 <Image
-                  source={{ uri: item.images && item.images[0] ? item.images[0].url : '' }}
+                  source={{
+                    uri:
+                      item.images && item.images[0] ? item.images[0].url : "",
+                  }}
                   style={styles.artistArt}
                 />
                 <Text style={styles.artistName}>{item.name}</Text>
