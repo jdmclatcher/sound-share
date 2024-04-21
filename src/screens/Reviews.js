@@ -20,7 +20,7 @@ import {
   getAccessToken,
 } from "../auth/SpotifyAuth";
 import { firebase } from "../../config.js";
-import { ref, query, orderByChild, equalTo, onValue } from "firebase/database";
+import { ref, onValue, getDatabase, remove } from "firebase/database";
 
 const Reviews = ({ accessToken, setIsLoggedIn }) => {
   const [profile, setProfile] = useState(null);
@@ -116,7 +116,15 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
           {reviews && (
             <ScrollView>
               {reviews.map((review, index) => (
-                <TouchableOpacity key={index} style={styles.reviewContainer}>
+                <TouchableOpacity 
+                  // key={index} 
+                  // style={styles.reviewContainer}
+                  key = { review.id }
+                  style={styles.reviewContainer}
+                  onLongPress={() => 
+                    handleDeleteReview(profile.id, review.id)
+                  }
+                >
                   <Image
                     source={{ uri: review.albumArt }}
                     style={styles.albumArt}
@@ -162,6 +170,38 @@ const Reviews = ({ accessToken, setIsLoggedIn }) => {
         }}
       />
     </View>
+  );
+};
+
+/* review delete feature */
+
+const db = getDatabase();
+
+const handleDeleteReview = (userId, reviewId) => {
+  Alert.alert(
+    "Delete Review",
+    "Are you sure you want to delete this review?",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        onPress: () => {
+          const reviewRef = ref(db, `users/${userId}/reviews/${reviewId}`);
+          remove(reviewRef)
+            .then(() => {
+              Alert.alert("Review deleted successfully.");
+            })
+            .catch(error => {
+              console.error("Error deleting review: ", error);
+              Alert.alert("Error", "There was an error deleting the review.");
+            });
+        }
+      }
+    ],
+    { cancelable: false }
   );
 };
 
