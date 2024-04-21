@@ -20,7 +20,7 @@ const ArtistProfile = ({ route }) => {
   const [musicData, setMusicData] = useState(null);
   const [artistName, setArtistName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [artistImage, setArtistImage] = useState(""); 
+  const [artistImage, setArtistImage] = useState("");
 
   const { id, type } = route.params;
 
@@ -34,7 +34,7 @@ const ArtistProfile = ({ route }) => {
     };
 
     fetchAccessToken();
-  }, [id, type]); 
+  }, [id, type]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -98,7 +98,7 @@ const ArtistProfile = ({ route }) => {
             </View>
           ) : (
             <>
-              {artistImage && ( 
+              {artistImage && (
                 <Image
                   source={{ uri: artistImage }}
                   style={styles.artistImage}
@@ -130,9 +130,7 @@ const ArtistProfile = ({ route }) => {
                       </Text>
                       {type === 0 && (
                         <Text style={styles.artist}>
-                          {item.artists
-                            .map((artist) => artist.name)
-                            .join(", ")}
+                          {item.artists.map((artist) => artist.name).join(", ")}
                         </Text>
                       )}
                     </View>

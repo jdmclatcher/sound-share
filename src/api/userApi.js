@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.spotify.com/v1';
+const BASE_URL = "https://api.spotify.com/v1";
 
 /**
  * Gets the current user's profile information from Spotify.
@@ -6,13 +6,13 @@ const BASE_URL = 'https://api.spotify.com/v1';
  * @returns {Promise<Object>} The user's profile information.
  */
 const getCurrentUserProfile = async (accessToken) => {
-	const response = await fetch(`${BASE_URL}/me`, {
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-		},
-	});
-	const data = await response.json();
-	return data;
+  const response = await fetch(`${BASE_URL}/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  const data = await response.json();
+  return data;
 };
 
 /**
@@ -21,13 +21,13 @@ const getCurrentUserProfile = async (accessToken) => {
  * @returns {Promise<Object>} The user's playlists.
  */
 const getCurrentUserPlaylists = async (accessToken) => {
-	const response = await fetch(`${BASE_URL}/me/playlists`, {
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-		},
-	});
-	const data = await response.json();
-	return data;
+  const response = await fetch(`${BASE_URL}/me/playlists`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  const data = await response.json();
+  return data;
 };
 
 /**
@@ -37,16 +37,16 @@ const getCurrentUserPlaylists = async (accessToken) => {
  * @returns {Promise<Object>} The user's top artists.
  */
 const getCurrentUserTopArtists = async (accessToken, limit) => {
-	const response = await fetch(
-		`${BASE_URL}/me/top/artists?time_range=short_term&limit=${limit}`,
-		{
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		}
-	);
-	const data = await response.json();
-	return data;
+  const response = await fetch(
+    `${BASE_URL}/me/top/artists?time_range=short_term&limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  const data = await response.json();
+  return data;
 };
 
 /**
@@ -56,16 +56,16 @@ const getCurrentUserTopArtists = async (accessToken, limit) => {
  * @returns {Promise<Object>} The user's top artists.
  */
 const getCurrentUserTopTracks = async (accessToken, limit) => {
-	const response = await fetch(
-		`${BASE_URL}/me/top/tracks?time_range=short_term&limit=${limit}`,
-		{
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		}
-	);
-	const data = await response.json();
-	return data;
+  const response = await fetch(
+    `${BASE_URL}/me/top/tracks?time_range=short_term&limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  const data = await response.json();
+  return data;
 };
 
 /**
@@ -75,22 +75,22 @@ const getCurrentUserTopTracks = async (accessToken, limit) => {
  * @returns {Promise<Object>} The user's recently played tracks.
  */
 const getCurrentUserRecentlyPlayedTracks = async (accessToken, limit) => {
-	const response = await fetch(
-		`${BASE_URL}/me/player/recently-played?limit=${limit}`,
-		{
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		}
-	);
-	const data = await response.json();
-	return data;
+  const response = await fetch(
+    `${BASE_URL}/me/player/recently-played?limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  const data = await response.json();
+  return data;
 };
 
 module.exports = {
-	getCurrentUserProfile,
-	getCurrentUserPlaylists,
-	getCurrentUserTopArtists,
-	getCurrentUserTopTracks,
-	getCurrentUserRecentlyPlayedTracks,
+  getCurrentUserProfile,
+  getCurrentUserPlaylists,
+  getCurrentUserTopArtists,
+  getCurrentUserTopTracks,
+  getCurrentUserRecentlyPlayedTracks,
 };
