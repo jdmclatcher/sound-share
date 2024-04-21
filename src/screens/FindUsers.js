@@ -7,6 +7,7 @@ import {
 	Text,
 	StyleSheet,
 	ActivityIndicator,
+	Alert
 } from 'react-native';
 import { firebase } from '../../config.js';
 import { getCurrentUserProfile } from '../api/userApi';
@@ -25,7 +26,7 @@ import {
 	remove,
 } from 'firebase/database';
 
-const FindUsers = ({ route }) => {
+const FindUsers = ({ route, navigation }) => {
 	const [accessToken, setAccessToken] = useState(null);
 	const [searchQuery, setQuery] = useState('');
 	const [userResults, setUserResults] = useState([]);
@@ -235,7 +236,18 @@ const FindUsers = ({ route }) => {
 	
 	const renderUserItem = ({ item }) => (
 		<TouchableOpacity
-			//onPress={() => navigation.navigate("UserProfile", { userId: item.id })}
+			onPress={() => {
+				if (userFriends.some((friend) => friend.id === item.id)) {
+					console.log(accessToken);
+					navigation.navigate("UserProfile", { 
+						userId: item.id, 
+						accessToken: accessToken 
+					})
+				} else {
+					Alert.alert("Access Denied", "You can only view profiles of your friends.");
+				}
+				
+				}}
 			style={styles.userResultItem}
 		>
 			<Text style={styles.userName}>{item.name}</Text>

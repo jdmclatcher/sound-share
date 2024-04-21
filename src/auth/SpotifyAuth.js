@@ -19,6 +19,7 @@ import { encode as btoa } from 'base-64';
 import { getCurrentUserProfile } from '../api/userApi.js';
 WebBrowser.maybeCompleteAuthSession();
 
+
 const clientId = SPOTIFY_CLIENT_ID;
 const clientSecret = SPOTIFY_CLIENT_SECRET;
 const scopes = [
@@ -110,7 +111,7 @@ const authenticate = async (setIsLoggedIn) => {
 			const accessToken = tokens.access_token;
 			const userData = await getCurrentUserProfile(accessToken);
 			await createUserInDatabase(userData);
-			
+		
 			console.log(
 				`Access token stored successfully. Access token: ${
 					tokens.access_token
@@ -120,6 +121,7 @@ const authenticate = async (setIsLoggedIn) => {
 			);
 			setIsLoggedIn(true);
 		} else {
+			console.log(clientSecret);
 			console.log('Authentication failed.');
 		}
 	} catch (error) {
@@ -127,6 +129,7 @@ const authenticate = async (setIsLoggedIn) => {
 		console.error(error);
 	}
 };
+
 
 const refresh = async () => {
 	try {
